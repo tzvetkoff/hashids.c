@@ -130,7 +130,7 @@ hashids_init3(const char *salt, unsigned int min_hash_length,
 
     /* copy salt */
     result->salt = strdup(salt ? salt : HASHIDS_DEFAULT_SALT);
-    result->salt_length = strlen(salt);
+    result->salt_length = strlen(result->salt);
 
     /* allocate enough space for separators */
     result->separators = _hashids_alloc(ceil((float)result->alphabet_length
