@@ -246,6 +246,24 @@ Feel free to reassign those at your will.
 
 Oh, PLEASE __NOTE__: `hashids_init3` (most likely) relies on that memory allocated is zero-initialized.
 
+## CLI
+
+As you might've noticed, there's a command line utility utilizing the `hashids` library and providing almost all the functionality in the shell.
+
+The usage is not much different. If you have any trouble, just run the command without any arguments and read the help lines.
+
+``` bash
+./hashids 1
+# => jR
+./hashids -d jR
+# => 1
+```
+
+Once again, a __NOTE__: Please do __NOT__ use this binary, unless you're writing shell scripts. It's simply provided as an example to the library.
+
+Relying on external binaries is dangerous, thus considered a bad habit.
+FWIW, there are so much outstanding [Hashids](http://hashids.org/) implementations chances are you probably don't even need `exec()`.
+
 ## Issues
 
 [Oh, no!](https://github.com/tzvetkoff/hashids.c/issues/new)
