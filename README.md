@@ -5,13 +5,13 @@ The [C](http://en.wikipedia.org/wiki/C_%28programming_language%29) port of the [
 ## Full Documentation
 
 A small C library to generate Youtube-like IDs from one or many numbers.
-Use __Hashids__ when you don't want to expose your database ids to the user.
+Use __Hashids__ when you don't want to expose your database IDs to the user.
 
-Read the full documentation at [http://hashids.org/c](http://hashids.org/c).
+Read more about the library at [http://hashids.org/c/](http://hashids.org/c/).
 
 ## Usage
 
-The C usage differs marginally than [JavaScript's](http://hashids.org/javascript/) or [Ruby's](http://hashids.org/ruby/) in the matter that everything is left for the user.
+The C usage differs marginally than [JavaScript's](http://hashids.org/javascript/) or [Ruby's](http://hashids.org/ruby/) in the matter that nothing is done (auto-magically) for you.
 You'll have to manually allocate and free all memory you need for encoding/decoding.
 The library itself will only allocate the `hashids_t` structure (the handle) on its own, and even then [you've got the power](#memory-allocation).
 
@@ -19,6 +19,16 @@ The library itself will only allocate the `hashids_t` structure (the handle) on 
 
 The C version of Hashids works (presumably, and only) with `unsigned long long` arguments.
 Negative (signed) integers are, by design, treated as very big unsigned ones.
+
+#### hashids_free
+
+``` c
+void
+hashids_free(struct hashids_t *hashids);
+```
+
+The 'destructor'. This function disposes what you can allocate with the following 3 functions.
+You'll definetely need to call this function when something goes wrong or you're finished (un)hashing your `ULONGLONG`s.
 
 #### hashids_init3
 
@@ -28,11 +38,6 @@ hashids_init3(const char *salt, unsigned int min_hash_length, const char *alphab
 ```
 
 The most common initializer.
-Takes 3 arguments:
-
-* const char *salt
-* unsigned int min_hash_length
-* const char *alpabet
 
 Example:
 
@@ -76,6 +81,7 @@ Example:
 unsigned long long numbers[] = {1ull, 2ull, 3ull, 4ull, 5ull};
 unsigned int bytes_needed;
 bytes_needed = hashids_estimate_encoded_size(hashids, sizeof(numbers) / sizeof(unsigned long long), numbers);
+/* bytes_needed => 12 () */
 ```
 
 #### hashids_estimate_encoded_size_v
@@ -91,6 +97,7 @@ Example:
 
 ``` c
 bytes_needed = hashids_estimate_encoded_size_v(hashids, 5, 1ull, 2ull, 3ull, 4ull, 5ull);
+/* bytes_needed => 12 */
 ```
 
 #### hashids_encode
@@ -102,12 +109,7 @@ hashids_encode(struct hashids_t *hashids, char *buffer, unsigned int numbers_cou
 
 The common encoding encoder.
 Encodes an array of `ULONGLONG` numbers.
-Takes 4 arguments:
-
-* struct hashids_t *hashids - the hashids_t handle
-* char *buffer - the string buffer where the encoded hash will be put
-* unsigned int numbers_count - the count of numbers we'll be encoding
-* unsigned long long *numbers - the array of numbers
+The returned value is the count of bytes encoded - if 0, something went south...
 
 Example:
 
@@ -168,6 +170,7 @@ hashids_numbers_count(struct hashids_t *hashids, char *str);
 ```
 
 That nice function will tell you how much `ULONGLONG`s are hashed in the hash you'll be decoding.
+If the function returns `0`, the hash is probably hashed with a different salt.
 It's up to you to allocate `result * sizeof(unsigned long long)` enough memory yourself.
 
 Example:
@@ -185,11 +188,8 @@ hashids_decode(struct hashids_t *hashids, char *str, unsigned long long *numbers
 ```
 
 The common decoding decoder.
-Takes 3 parameters:
-
-* struct hashids_t *hashids - the hashids_t handle
-* char *str - the hash we'll be decoding
-* the output `ULONGLONG` array
+Will decode a string hash to an array of `ULONGLONG`s.
+If the function returns `0`, the hash is probably hashed with a different salt.
 
 Example:
 
@@ -201,14 +201,16 @@ result = hashids_decode(hashids, "p2xkL3CK33JjcrrZ8vsw4YRZueZX9k", numbers);
 
 ## Error checking
 
-The library uses its own `extern int hashids_errno` for error handling, thus it does not mangle system-wide `errno`.
+The library uses its own `extern int hashids_errno` for error handling, thus it does not mangle the system-wide `errno`.
 `hashids_errno` definitions:
 
-* HASHIDS_ERROR_OK => 0 -- happy
-* HASHIDS_ERROR_ALLOC => -1 -- memory allocation error
-* HASHIDS_ERROR_ALPHABET_LENGTH => -2 -- alphabet is shorter than `HASHIDS_MIN_ALPHABET_LENGTH` (16 chars)
-* HASHIDS_ERROR_ALPHABET_SPACE => -3 -- alpabet contains a space (`' '`)
-* HASHIDS_ERROR_INVALID_HASH => -4 -- an invalid hash has been passed to hashids_decode()
+| #define CONSTANT              | Code  | Description                                                           |
+| ----------------------------- | ----- | --------------------------------------------------------------------- |
+| HASHIDS_ERROR_OK              |     0 | Happy, do nothing!                                                    |
+| HASHIDS_ERROR_ALLOC           |    -1 | Memory allocation error                                               |
+| HASHIDS_ERROR_ALPHABET_LENGTH |    -2 | The alphabet is shorter than `HASHIDS_MIN_ALPHABET_LENGTH` (16 chars) |
+| HASHIDS_ERROR_ALPHABET_SPACE  |    -3 | The alphabet contains a space (tab NOT included)                      |
+| HASHIDS_ERROR_INVALID_HASH    |    -4 | An invalid hash has been passed to `hashids_decode()`                 |
 
 ## Memory allocation
 
@@ -221,7 +223,7 @@ extern void *(*_hashids_alloc)(size_t size);
 extern void (*_hashids_free)(void *ptr);
 ```
 
-The library implementation is simple:
+The library implementation is as simple as possible:
 
 ``` c
 static void *
@@ -241,6 +243,8 @@ void (*_hashids_free)(void *ptr) = hashids_free_f;
 ```
 
 Feel free to reassign those at your will.
+
+Oh, PLEASE __NOTE__: `hashids_init3` (most likely) relies on that memory allocated is zero-initialized.
 
 ## Issues
 
