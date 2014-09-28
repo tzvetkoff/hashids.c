@@ -21,6 +21,7 @@ struct testcase_t {
 struct testcase_t testcases[] = {
     {"", 0, HASHIDS_DEFAULT_ALPHABET, 1, {1ull}, "jR"},
     {"", 0, HASHIDS_DEFAULT_ALPHABET, 1, {12345ull}, "j0gW"},
+    {"", 0, HASHIDS_DEFAULT_ALPHABET, 1, {18446744073709551615ull}, "AOo9Ql5nQR1VO"},
 
     {"this is my salt", 0, HASHIDS_DEFAULT_ALPHABET, 1, {1ull}, "NV"},
     {"this is my salt", 0, HASHIDS_DEFAULT_ALPHABET, 1, {22ull}, "K4"},
@@ -32,6 +33,7 @@ struct testcase_t testcases[] = {
     {"this is my salt", 0, HASHIDS_DEFAULT_ALPHABET, 1, {456000000ull}, "5gn6mQP"},
     {"this is my salt", 0, HASHIDS_DEFAULT_ALPHABET, 1, {987654321ull}, "oyjYvry"},
     {"this is my salt", 0, HASHIDS_DEFAULT_ALPHABET, 1, {666555444333222ull}, "KVO9yy1oO5j"},
+    {"this is my salt", 0, HASHIDS_DEFAULT_ALPHABET, 1, {18446744073709551615ull}, "zXVjmzBamYlqX"},
 
     {"this is my salt", 0, HASHIDS_DEFAULT_ALPHABET, 5, {1ull, 2ull, 3ull, 4ull, 5ull}, "zoHWuNhktp"},
     {"this is my salt", 0, HASHIDS_DEFAULT_ALPHABET, 3, {1ull,2ull,3ull}, "laHquq"},

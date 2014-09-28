@@ -24,6 +24,7 @@ usage(const char *program_invocation_name, FILE *out)
         out);
     fprintf(out, "  -l, --min-length  set hash minimum length [%u]\n",
         HASHIDS_DEFAULT_MIN_HASH_LENGTH);
+    fputs("  -x, --hex         encode / decode hex strings\n", out);
     fputs("  -h, --help        display this help and exit\n", out);
     fputs("  -v, --version     print version information and exit\n", out);
 
@@ -36,11 +37,11 @@ main(int argc, char **argv)
 {
     struct hashids_t *hashids;
     char *salt = HASHIDS_DEFAULT_SALT, *alphabet = HASHIDS_DEFAULT_ALPHABET,
-        *buffer, *p;
-    unsigned int command = COMMAND_ENCODE,
+        *buffer, *p, str[18];
+    unsigned int command = COMMAND_ENCODE, hex = 0,
         min_hash_length = HASHIDS_DEFAULT_MIN_HASH_LENGTH,
         numbers_count, result;
-    unsigned long long *numbers, *numbers_ptr;
+    unsigned long long number, *numbers, *numbers_ptr;
     int ch, i, j;
 
     static const struct option longopts[] = {
@@ -55,7 +56,7 @@ main(int argc, char **argv)
     };
 
     /* parse command line options */
-    while ((ch = getopt_long(argc, argv, "+eds:a:l:hv", longopts, NULL)) != -1) {
+    while ((ch = getopt_long(argc, argv, "+eds:a:l:xhv", longopts, NULL)) != -1) {
         switch (ch) {
             case 'e':
                 command = COMMAND_ENCODE;
@@ -75,6 +76,9 @@ main(int argc, char **argv)
                     printf("Invalid minimum length: %s\n", optarg);
                     return EXIT_FAILURE;
                 }
+                break;
+            case 'x':
+                hex = 1;
                 break;
             case 'h':
                 usage(argv[0], stdout);
@@ -117,6 +121,28 @@ main(int argc, char **argv)
 
     /* encode */
     if (command == COMMAND_ENCODE) {
+        /* hex mode */
+        if (hex) {
+            number = (unsigned long long)-1;
+            buffer = calloc(hashids_estimate_encoded_size(hashids, 1, &number),
+                1);
+
+            if (!buffer) {
+                printf("Cannot allocate memory for buffer\n");
+                hashids_free(hashids);
+                return EXIT_FAILURE;
+            }
+
+            for (i = optind; i < argc; ++i) {
+                hashids_encode_hex(hashids, buffer, argv[i]);
+                printf("%s\n", buffer);
+            }
+
+            free(buffer);
+            hashids_free(hashids);
+            return EXIT_SUCCESS;
+        }
+
         /* collect numbers */
         numbers_count = argc - optind;
         numbers = calloc(numbers_count, sizeof(unsigned long long));
@@ -160,7 +186,18 @@ main(int argc, char **argv)
     }
 
     /* decode */
+    if (hex) {
+        for (i = optind; i < argc; ++i) {
+            hashids_decode_hex(hashids, argv[i], str);
+            printf("%s\n", str);
+        }
+
+        hashids_free(hashids);
+        return EXIT_SUCCESS;
+    }
+
     for (i = optind; i < argc; ++i) {
+
         numbers_count = hashids_numbers_count(hashids, argv[i]);
 
         if (!numbers_count) {

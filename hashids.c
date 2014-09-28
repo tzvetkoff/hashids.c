@@ -25,9 +25,9 @@ hashids_free_f(void *ptr)
 void *(*_hashids_alloc)(size_t size) = hashids_alloc_f;
 void (*_hashids_free)(void *ptr) = hashids_free_f;
 
-/* internals */
-static void
-consistent_shuffle(char *str, int str_length, char *salt, int salt_length)
+/* shuffle */
+void
+hashids_shuffle(char *str, int str_length, char *salt, int salt_length)
 {
     int i, j, v, p, temp;
 
@@ -160,7 +160,7 @@ hashids_init3(const char *salt, unsigned int min_hash_length,
     result->alphabet_length -= result->separators_count;
 
     /* shuffle the separators */
-    consistent_shuffle(result->separators, result->separators_count,
+    hashids_shuffle(result->separators, result->separators_count,
         result->salt, result->salt_length);
 
     /* check if we have any/enough separators */
@@ -191,7 +191,7 @@ hashids_init3(const char *salt, unsigned int min_hash_length,
     }
 
     /* shuffle alphabet */
-    consistent_shuffle(result->alphabet, result->alphabet_length,
+    hashids_shuffle(result->alphabet, result->alphabet_length,
         result->salt, result->salt_length);
 
     /* allocate guards */
@@ -372,7 +372,7 @@ hashids_encode(struct hashids_t *hashids, char *buffer,
         }
 
         /* shuffle the alphabet */
-        consistent_shuffle(hashids->alphabet_copy_1, hashids->alphabet_length,
+        hashids_shuffle(hashids->alphabet_copy_1, hashids->alphabet_length,
             hashids->alphabet_copy_2, hashids->alphabet_length);
 
         /* hash the number */
@@ -422,7 +422,7 @@ hashids_encode(struct hashids_t *hashids, char *buffer,
             while (result_len < hashids->min_hash_length) {
                 strncpy(hashids->alphabet_copy_2, hashids->alphabet_copy_1,
                     hashids->alphabet_length);
-                consistent_shuffle(hashids->alphabet_copy_1,
+                hashids_shuffle(hashids->alphabet_copy_1,
                     hashids->alphabet_length, hashids->alphabet_copy_2,
                     hashids->alphabet_length);
 
@@ -579,7 +579,7 @@ hashids_decode(struct hashids_t *hashids, char *str,
     }
 
     /* first shuffle */
-    consistent_shuffle(hashids->alphabet_copy_1, hashids->alphabet_length,
+    hashids_shuffle(hashids->alphabet_copy_1, hashids->alphabet_length,
         hashids->alphabet_copy_2, hashids->alphabet_length);
 
     /* parse */
@@ -596,7 +596,7 @@ hashids_decode(struct hashids_t *hashids, char *str,
             if (p_max > 0) {
                 strncpy(p, hashids->alphabet_copy_1, p_max);
             }
-            consistent_shuffle(hashids->alphabet_copy_1, hashids->alphabet_length,
+            hashids_shuffle(hashids->alphabet_copy_1, hashids->alphabet_length,
                 hashids->alphabet_copy_2, hashids->alphabet_length);
 
             str++;
@@ -617,4 +617,86 @@ hashids_decode(struct hashids_t *hashids, char *str,
     *numbers = number;
 
     return numbers_count;
+}
+
+/* encode hex */
+unsigned int
+hashids_encode_hex(struct hashids_t *hashids, char *buffer,
+    const char *hex_str)
+{
+    int len;
+    char *temp, *p;
+    unsigned long long number;
+    unsigned int result;
+
+    len = strlen(hex_str);
+    temp = _hashids_alloc(len + 2);
+
+    if (!temp) {
+        hashids_errno = HASHIDS_ERROR_ALLOC;
+        return 0;
+    }
+
+    temp[0] = '1';
+    strncpy(temp + 1, hex_str, len);
+
+    number = strtoull(temp, &p, 16);
+
+    if (p == temp) {
+        _hashids_free(temp);
+        hashids_errno = HASHIDS_ERROR_INVALID_NUMBER;
+        return 0;
+    }
+
+    result = hashids_encode(hashids, buffer, 1, &number);
+    _hashids_free(temp);
+
+    return result;
+}
+
+/* decode hex */
+unsigned int
+hashids_decode_hex(struct hashids_t *hashids, char *str, char *output)
+{
+    unsigned int result, i;
+    unsigned long long number;
+    char ch, *temp;
+
+    result = hashids_numbers_count(hashids, str);
+
+    if (result != 1) {
+        return 0;
+    }
+
+    result = hashids_decode(hashids, str, &number);
+
+    if (result != 1) {
+        return 0;
+    }
+
+    temp = output;
+
+    do {
+        ch = number % 16;
+        if (ch > 9) {
+            ch += 'A' - 10;
+        } else {
+            ch += '0';
+        }
+
+        *temp++ = (char)ch;
+
+        number /= 16;
+    } while (number);
+
+    temp--;
+    *temp = 0;
+
+    for (i = 0; i < (temp - output) / 2; ++i) {
+        ch = *(output + i);
+        *(output + i) = *(temp - 1 - i);
+        *(temp - 1 - i) = ch;
+    }
+
+    return 1;
 }

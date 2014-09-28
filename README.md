@@ -196,7 +196,41 @@ Example:
 ``` c
 unsigned long long numbers[5];
 result = hashids_decode(hashids, "p2xkL3CK33JjcrrZ8vsw4YRZueZX9k", numbers);
-/* numbers = {21979508, 35563591, 57543099, 93106690, 150649789 }, result => 5 */
+/* numbers = {21979508, 35563591, 57543099, 93106690, 150649789}, result => 5 */
+```
+
+#### hashids_encode_hex
+
+``` c
+/* encode hex */
+unsigned int
+hashids_encode_hex(struct hashids_t *hashids, char *buffer, const char *hex_str);
+```
+
+Encodes a hex string rather than a number.
+
+Example:
+
+``` c
+result = hashids_encode_hex(hashids, hash, "C0FFEE");
+/* hash => "6N6LO4", result => 6 */
+```
+
+#### hashids_decode_hex
+
+``` c
+unsigned int
+hashids_decode_hex(struct hashids_t *hashids, char *str, char *output);
+```
+
+Decodes a hash to a hex string rather than to a number.
+
+Example:
+
+``` c
+char str[18];   /* sizeof(unsigned long long) * 2 + 2 */
+result = hashids_decode_hex(hashids, "6N6LO4", str);
+/* str => "C0FFEE", result => 1 */
 ```
 
 ## Error checking
@@ -204,13 +238,14 @@ result = hashids_decode(hashids, "p2xkL3CK33JjcrrZ8vsw4YRZueZX9k", numbers);
 The library uses its own `extern int hashids_errno` for error handling, thus it does not mangle the system-wide `errno`.
 `hashids_errno` definitions:
 
-| #define CONSTANT              | Code  | Description                                                           |
-| ----------------------------- | ----- | --------------------------------------------------------------------- |
-| HASHIDS_ERROR_OK              |     0 | Happy, do nothing!                                                    |
-| HASHIDS_ERROR_ALLOC           |    -1 | Memory allocation error                                               |
-| HASHIDS_ERROR_ALPHABET_LENGTH |    -2 | The alphabet is shorter than `HASHIDS_MIN_ALPHABET_LENGTH` (16 chars) |
-| HASHIDS_ERROR_ALPHABET_SPACE  |    -3 | The alphabet contains a space (tab NOT included)                      |
-| HASHIDS_ERROR_INVALID_HASH    |    -4 | An invalid hash has been passed to `hashids_decode()`                 |
+| #define CONSTANT                      | Code  | Description                                                           |
+| ------------------------------------- | ----- | --------------------------------------------------------------------- |
+| HASHIDS_ERROR_OK                      |     0 | Happy, do nothing!                                                    |
+| HASHIDS_ERROR_ALLOC                   |    -1 | Memory allocation error                                               |
+| HASHIDS_ERROR_ALPHABET_LENGTH         |    -2 | The alphabet is shorter than `HASHIDS_MIN_ALPHABET_LENGTH` (16 chars) |
+| HASHIDS_ERROR_ALPHABET_SPACE          |    -3 | The alphabet contains a space (tab NOT included)                      |
+| HASHIDS_ERROR_INVALID_HASH            |    -4 | An invalid hash has been passed to `hashids_decode()`                 |
+| #define HASHIDS_ERROR_INVALID_NUMBER  |    -5 | An invalid hex string has been passed to `hashids_encode_hex()`       |
 
 ## Memory allocation
 
@@ -259,10 +294,7 @@ The usage is not much different. If you have any trouble, just run the command w
 # => 1
 ```
 
-Once again, a __NOTE__: Please do __NOT__ use this binary, unless you're writing shell scripts. It's simply provided as an example to the library.
-
-Relying on external binaries is dangerous, thus considered a bad habit.
-FWIW, there are so much outstanding [Hashids](http://hashids.org/) implementations chances are you probably don't even need `exec()`.
+You can also consult the source (`main.c`) for further help on using `hashids`.
 
 ## Issues
 
@@ -270,4 +302,5 @@ FWIW, there are so much outstanding [Hashids](http://hashids.org/) implementatio
 
 ## Hacking
 
-Fork teh repo, then send me a pull request.
+Fork the repo, then send me a pull request.
+Bonus points for topic branches.
