@@ -81,7 +81,7 @@ Example:
 unsigned long long numbers[] = {1ull, 2ull, 3ull, 4ull, 5ull};
 unsigned int bytes_needed;
 bytes_needed = hashids_estimate_encoded_size(hashids, sizeof(numbers) / sizeof(unsigned long long), numbers);
-/* bytes_needed => 12 () */
+/* bytes_needed => 12 */
 ```
 
 #### hashids_estimate_encoded_size_v
@@ -238,14 +238,14 @@ result = hashids_decode_hex(hashids, "6N6LO4", str);
 The library uses its own `extern int hashids_errno` for error handling, thus it does not mangle the system-wide `errno`.
 `hashids_errno` definitions:
 
-| #define CONSTANT                      | Code  | Description                                                           |
+| CONSTANT                              | Code  | Description                                                           |
 | ------------------------------------- | ----- | --------------------------------------------------------------------- |
-| HASHIDS_ERROR_OK                      |     0 | Happy, do nothing!                                                    |
-| HASHIDS_ERROR_ALLOC                   |    -1 | Memory allocation error                                               |
-| HASHIDS_ERROR_ALPHABET_LENGTH         |    -2 | The alphabet is shorter than `HASHIDS_MIN_ALPHABET_LENGTH` (16 chars) |
-| HASHIDS_ERROR_ALPHABET_SPACE          |    -3 | The alphabet contains a space (tab NOT included)                      |
-| HASHIDS_ERROR_INVALID_HASH            |    -4 | An invalid hash has been passed to `hashids_decode()`                 |
-| #define HASHIDS_ERROR_INVALID_NUMBER  |    -5 | An invalid hex string has been passed to `hashids_encode_hex()`       |
+| __HASHIDS_ERROR_OK__                  |     0 | Happy, do nothing!                                                    |
+| __HASHIDS_ERROR_ALLOC__               |    -1 | Memory allocation error                                               |
+| __HASHIDS_ERROR_ALPHABET_LENGTH__     |    -2 | The alphabet is shorter than `HASHIDS_MIN_ALPHABET_LENGTH` (16 chars) |
+| __HASHIDS_ERROR_ALPHABET_SPACE__      |    -3 | The alphabet contains a space (tab NOT included)                      |
+| __HASHIDS_ERROR_INVALID_HASH__        |    -4 | An invalid hash has been passed to `hashids_decode()`                 |
+| __HASHIDS_ERROR_INVALID_NUMBER__      |    -5 | An invalid hex string has been passed to `hashids_encode_hex()`       |
 
 ## Memory allocation
 
