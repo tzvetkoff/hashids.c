@@ -50,6 +50,7 @@ main(int argc, char **argv)
         {"salt", required_argument, NULL, 's'},
         {"alphabet", required_argument, NULL, 'a'},
         {"min-length", required_argument, NULL, 'l'},
+        {"hex", no_argument, NULL, 'x'},
         {"help", no_argument, NULL, 'h'},
         {"version", no_argument, NULL, 'v'},
         {NULL, 0, NULL, 0}
