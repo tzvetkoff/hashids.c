@@ -19,7 +19,7 @@ usage(const char *program_invocation_name, FILE *out)
     fputs("Options:\n", out);
     fputs("  -e, --encode      set command to encode (default)\n", out);
     fputs("  -d, --decode      set command to decode\n", out);
-    fputs("  -s, --salt        set salt " HASHIDS_DEFAULT_SALT "\n", out);
+    fputs("  -s, --salt        set salt [" HASHIDS_DEFAULT_SALT "]\n", out);
     fputs("  -a, --alphabet    set alphabet [" HASHIDS_DEFAULT_ALPHABET "]\n",
         out);
     fprintf(out, "  -l, --min-length  set hash minimum length [%u]\n",
