@@ -74,7 +74,7 @@ main(int argc, char **argv)
             case 'l':
                 min_hash_length = strtoul(optarg, &p, 10);
                 if (p == optarg) {
-                    printf("Invalid minimum length: %s\n", optarg);
+                    fprintf(stderr, "Invalid minimum length: %s\n", optarg);
                     return EXIT_FAILURE;
                 }
                 break;
