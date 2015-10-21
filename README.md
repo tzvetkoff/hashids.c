@@ -1,4 +1,4 @@
-# ![hashids](http://www.hashids.org.s3.amazonaws.com/public/img/hashids.png "Hashids")
+# ![hashids](http://hashids.org/public/img/hashids-logo-normal.png "Hashids")
 
 The [C](http://en.wikipedia.org/wiki/C_%28programming_language%29) port of the [Hashids](http://hashids.org/) library.
 
@@ -68,12 +68,12 @@ If you pass `NULL` for `salt` the `HASHIDS_DEFAULT_SALT` will be used (currently
 
 #### hashids_estimate_encoded_size
 
-Since we have no idea how much bytes an encoded `ULONGLONG` will take, there's this (pessimistic) function:
-
 ``` c
 unsigned int
 hashids_estimate_encoded_size(struct hashids_t *hashids, unsigned int numbers_count, unsigned long long *numbers);
 ```
+
+Since we have no idea how much bytes an encoded `ULONGLONG` will take, there's this (pessimistic) function:
 
 Example:
 
@@ -86,12 +86,12 @@ bytes_needed = hashids_estimate_encoded_size(hashids, sizeof(numbers) / sizeof(u
 
 #### hashids_estimate_encoded_size_v
 
-The variadic variant of the `hashids_estimate_encoded_size` function.
-
 ``` c
 unsigned int
 hashids_estimate_encoded_size_v(struct hashids_t *hashids, unsigned int numbers_count, ...);
 ```
+
+The variadic variant of the `hashids_estimate_encoded_size` function.
 
 Example:
 
@@ -160,16 +160,16 @@ bytes_encoded = hashids_encode_one(hashids, hash, 12345);
 
 #### hashids_numbers_count
 
-If you thought that encoding is easy, think again.
-Decoding is just as tough as encoding is - you'll have to manage the memory yourself.
-Luckily, we thought about that too:
-
 ``` c
 unsigned int
 hashids_numbers_count(struct hashids_t *hashids, char *str);
 ```
 
-That nice function will tell you how much `ULONGLONG`s are hashed in the hash you'll be decoding.
+If you thought that encoding is easy, think again.
+Decoding is just as tough as encoding is - you'll have to manage the memory yourself.
+Luckily, we thought about that too.
+
+This nice function will tell you how much `ULONGLONG`s are hashed in the hash you'll be decoding.
 If the function returns `0`, the hash is probably hashed with a different salt.
 It's up to you to allocate `result * sizeof(unsigned long long)` enough memory yourself.
 
@@ -202,7 +202,6 @@ result = hashids_decode(hashids, "p2xkL3CK33JjcrrZ8vsw4YRZueZX9k", numbers);
 #### hashids_encode_hex
 
 ``` c
-/* encode hex */
 unsigned int
 hashids_encode_hex(struct hashids_t *hashids, char *buffer, const char *hex_str);
 ```
@@ -212,7 +211,7 @@ Encodes a hex string rather than a number.
 Example:
 
 ``` c
-result = hashids_encode_hex(hashids, hash, "C0FFEE");
+bytes_encoded = hashids_encode_hex(hashids, hash, "C0FFEE");
 /* hash => "6N6LO4", result => 6 */
 ```
 
