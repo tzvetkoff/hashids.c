@@ -381,7 +381,7 @@ hashids_encode(struct hashids_t *hashids, char *buffer,
             ch = hashids->alphabet_copy_1[number % hashids->alphabet_length];
             *buffer_end++ = ch;
 
-            number /= hashids->alphabet_length;
+            number = (unsigned long long) floorl((long double)number / (long double)hashids->alphabet_length);
         } while (number);
 
         /* reverse the hash we got */
