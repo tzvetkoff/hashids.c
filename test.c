@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <stdbool.h>
 
 #include "hashids.h"
 
@@ -88,6 +89,8 @@ main(int argc, char **argv)
 
     /* walk test cases */
     for (i = 0, j = 0;; ++i) {
+        bool success = true;
+
         if (i && i % 72 == 0) {
             printf("\n");
         }
@@ -134,16 +137,14 @@ main(int argc, char **argv)
             printf("F");
             failures[j++] = f("#%d: hashids_encode() buffer %s does not match expected hash %s", i + 1, buffer,
                               testcase.expected_hash);
-            hashids_free(hashids);
-            continue;
+            success = false;
         }
 
         /* encoding error */
         if (!result) {
             printf("F");
             failures[j++] = f("#%d: hashids_encode() returned 0", i + 1);
-            hashids_free(hashids);
-            continue;
+            success = false;
         }
 
         /* decode */
@@ -153,8 +154,7 @@ main(int argc, char **argv)
         if (result != testcase.numbers_count) {
             printf("F");
             failures[j++] = f("#%d: hashids_decode() returned %u", i + 1, result);
-            hashids_free(hashids);
-            continue;
+            success = false;
         }
 
         /* compare */
@@ -162,11 +162,12 @@ main(int argc, char **argv)
                 result * sizeof(unsigned long long))) {
             printf("F");
             failures[j++] = f("#%d: hashids_decode() decoding error", i + 1);
-            hashids_free(hashids);
-            continue;
+            success = false;
         }
 
-        printf(".");
+        if (success) {
+            printf(".");
+        }
         hashids_free(hashids);
     }
 

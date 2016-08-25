@@ -29,7 +29,8 @@ void (*_hashids_free)(void *ptr) = hashids_free_f;
 void
 hashids_shuffle(char *str, int str_length, char *salt, int salt_length)
 {
-    int i, j, v, p, temp;
+    int i, j, v, p;
+    char temp;
 
     if (!salt_length) {
         return;
@@ -80,7 +81,7 @@ hashids_init3(const char *salt, unsigned int min_hash_length,
     const char *alphabet)
 {
     struct hashids_t *result;
-    int i, j;
+    unsigned int i, j;
     char ch, *p;
 
     hashids_errno = HASHIDS_ERROR_OK;
@@ -130,11 +131,10 @@ hashids_init3(const char *salt, unsigned int min_hash_length,
 
     /* copy salt */
     result->salt = strdup(salt ? salt : HASHIDS_DEFAULT_SALT);
-    result->salt_length = strlen(result->salt);
+    result->salt_length = (unsigned int) strlen(result->salt);
 
     /* allocate enough space for separators */
-    result->separators = _hashids_alloc(ceil((float)result->alphabet_length
-        / HASHIDS_SEPARATOR_DIVISOR) + 1);
+    result->separators = _hashids_alloc((size_t) (ceil((float)result->alphabet_length / HASHIDS_SEPARATOR_DIVISOR) + 1));
     if (!result->separators) {
         hashids_free(result);
         hashids_errno = HASHIDS_ERROR_ALLOC;
@@ -167,7 +167,7 @@ hashids_init3(const char *salt, unsigned int min_hash_length,
     if (!result->separators_count
         || (((float)result->alphabet_length / (float)result->separators_count)
                 > HASHIDS_SEPARATOR_DIVISOR)) {
-        int separators_count = ceil(
+        unsigned int separators_count = (unsigned int)ceil(
             (float)result->alphabet_length / HASHIDS_SEPARATOR_DIVISOR);
 
         if (separators_count == 1) {
@@ -195,8 +195,8 @@ hashids_init3(const char *salt, unsigned int min_hash_length,
         result->salt, result->salt_length);
 
     /* allocate guards */
-    result->guards_count = ceil((float)result->alphabet_length
-        / HASHIDS_GUARD_DIVISOR);
+    result->guards_count = (unsigned int) ceil((float)result->alphabet_length
+                                               / HASHIDS_GUARD_DIVISOR);
     result->guards = _hashids_alloc(result->guards_count + 1);
     if (!result->guards) {
         hashids_free(result);
@@ -433,7 +433,7 @@ hashids_encode(struct hashids_t *hashids, char *buffer,
                     hashids->alphabet_copy_1, half_length_floor);
 
                 result_len += hashids->alphabet_length;
-                int excess = result_len - hashids->min_hash_length;
+                excess = result_len - hashids->min_hash_length;
 
                 if (excess > 0) {
                     memmove(buffer, buffer + excess / 2,
