@@ -130,6 +130,14 @@ main(int argc, char **argv)
         result = hashids_encode(hashids, buffer, testcase.numbers_count,
             testcase.numbers);
 
+        if (strcmp(buffer, testcase.expected_hash) != 0) {
+            printf("F");
+            failures[j++] = f("#%d: hashids_encode() buffer %s does not match expected hash %s", i + 1, buffer,
+                              testcase.expected_hash);
+            hashids_free(hashids);
+            continue;
+        }
+
         /* encoding error */
         if (!result) {
             printf("F");
