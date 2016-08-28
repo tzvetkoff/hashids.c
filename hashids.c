@@ -94,9 +94,10 @@ hashids_init3(const char *salt, unsigned int min_hash_length,
     }
 
     /* allocate enough space for the alphabet and its copies */
-    result->alphabet = _hashids_alloc(strlen(alphabet) + 1);
-    result->alphabet_copy_1 = _hashids_alloc(strlen(alphabet) + 1);
-    result->alphabet_copy_2 = _hashids_alloc(strlen(alphabet) + 1);
+    size_t estimated_alphabet_length = strlen(alphabet) + 1;
+    result->alphabet = _hashids_alloc(estimated_alphabet_length);
+    result->alphabet_copy_1 = _hashids_alloc(estimated_alphabet_length);
+    result->alphabet_copy_2 = _hashids_alloc(estimated_alphabet_length);
     if (!result->alphabet || !result->alphabet_copy_1
         || !result->alphabet_copy_2) {
         hashids_free(result);
@@ -106,7 +107,7 @@ hashids_init3(const char *salt, unsigned int min_hash_length,
 
     /* extract only the unique characters */
     result->alphabet[0] = '\0';
-    for (i = 0, j = 0; i < strlen(alphabet); ++i) {
+    for (i = 0, j = 0; i < estimated_alphabet_length; ++i) {
         ch = alphabet[i];
         if (!strchr(result->alphabet, ch)) {
             result->alphabet[j++] = ch;
