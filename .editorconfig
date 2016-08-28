@@ -12,5 +12,8 @@ indent_style = space
 indent_size = 4
 trim_trailing_whitespace = true
 
+[{Makefile,Makefile.in,Makefile.am}]
+indent_style = tab
+
 # charset
 charset = utf-8

@@ -1,19 +1,20 @@
-all: main test
+BIN = hashids test
+HAHSIDS_OBJS = main.o hashids.o
+TEST_OBJS = test.o hashids.o
 
-main: main.o hashids.o
-	$(CC) -O3 -o hashids main.o hashids.o -lm
+CFLAGS ?= -O3 -Wall
+LIBS = -lm
 
-test: test.o hashids.o
-	$(CC) -o test test.o hashids.o -lm
+all: $(BIN)
 
-main.o: main.c hashids.o
-	$(CC) -c -o main.o main.c
+hashids: $(HAHSIDS_OBJS)
+	$(CC) $(CFLAGS) $(LIBS) -o $@ $^
 
-test.o: test.c hashids.o
-	$(CC) -c -o test.o test.c
+test: $(TEST_OBJS)
+	$(CC) $(CFLAGS) $(LIBS) -o $@ $^
 
-hashids.o: hashids.c hashids.h
-	$(CC) -c -o hashids.o hashids.c
+.c.o:
+	$(CC) $(CFLAGS) -o $@ -c $<
 
 clean:
-	$(RM) hashids test *.o
+	$(RM) -f $(BIN) $(HAHSIDS_OBJS) $(TEST_OBJS)

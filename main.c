@@ -4,8 +4,7 @@
 
 #include "hashids.h"
 
-#define COMMAND_ENCODE 0
-#define COMMAND_DECODE 1
+enum { COMMAND_ENCODE = 0, COMMAND_DECODE = 1 };
 
 static void
 usage(const char *program_invocation_name, FILE *out)
@@ -38,9 +37,8 @@ main(int argc, char **argv)
     struct hashids_t *hashids;
     char *salt = HASHIDS_DEFAULT_SALT, *alphabet = HASHIDS_DEFAULT_ALPHABET,
         *buffer, *p, str[18];
-    unsigned int command = COMMAND_ENCODE, hex = 0,
-        min_hash_length = HASHIDS_DEFAULT_MIN_HASH_LENGTH,
-        numbers_count, result;
+    unsigned int command = COMMAND_ENCODE, hex = 0;
+    size_t min_hash_length = HASHIDS_DEFAULT_MIN_HASH_LENGTH, numbers_count;
     unsigned long long number, *numbers, *numbers_ptr;
     int ch, i, j;
 

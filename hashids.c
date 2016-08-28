@@ -6,8 +6,16 @@
 
 #include "hashids.h"
 
-#define likely(x)       __builtin_expect(!!(x), 1)
-#define unlikely(x)     __builtin_expect(!!(x), 0)
+#ifndef __has_builtin
+#   define __has_builtin(x) (0)
+#endif
+#if defined(__builtin_expect) || __has_builtin(__builtin_expect)
+#   define HASHIDS_LIKELY(x)       (__builtin_expect(!!(x), 1))
+#   define HASHIDS_UNLIKELY(x)     (__builtin_expect(!!(x), 0))
+#else
+#   define HASHIDS_LIKELY(x)        (x)
+#   define HASHIDS_UNLIKELY(x)      (x)
+#endif
 
 /* exported hashids_errno */
 int hashids_errno;
@@ -80,28 +88,28 @@ hashids_free(struct hashids_t *hashids)
 
 /* common init */
 struct hashids_t *
-hashids_init3(const char *salt, unsigned int min_hash_length,
-    const char *alphabet)
+hashids_init3(const char *salt, size_t min_hash_length, const char *alphabet)
 {
     struct hashids_t *result;
     unsigned int i, j;
+    size_t len;
     char ch, *p;
 
     hashids_errno = HASHIDS_ERROR_OK;
 
     /* allocate the structure */
     result = _hashids_alloc(sizeof(struct hashids_t));
-    if (unlikely(!result)) {
+    if (HASHIDS_UNLIKELY(!result)) {
         hashids_errno = HASHIDS_ERROR_ALLOC;
         return NULL;
     }
 
     /* allocate enough space for the alphabet and its copies */
-    size_t estimated_alphabet_length = strlen(alphabet) + 1;
-    result->alphabet = _hashids_alloc(estimated_alphabet_length);
-    result->alphabet_copy_1 = _hashids_alloc(estimated_alphabet_length);
-    result->alphabet_copy_2 = _hashids_alloc(estimated_alphabet_length);
-    if (unlikely(!result->alphabet || !result->alphabet_copy_1
+    len = strlen(alphabet) + 1;
+    result->alphabet = _hashids_alloc(len);
+    result->alphabet_copy_1 = _hashids_alloc(len);
+    result->alphabet_copy_2 = _hashids_alloc(len);
+    if (HASHIDS_UNLIKELY(!result->alphabet || !result->alphabet_copy_1
         || !result->alphabet_copy_2)) {
         hashids_free(result);
         hashids_errno = HASHIDS_ERROR_ALLOC;
@@ -110,7 +118,7 @@ hashids_init3(const char *salt, unsigned int min_hash_length,
 
     /* extract only the unique characters */
     result->alphabet[0] = '\0';
-    for (i = 0, j = 0; i < estimated_alphabet_length; ++i) {
+    for (i = 0, j = 0; i < len; ++i) {
         ch = alphabet[i];
         if (!strchr(result->alphabet, ch)) {
             result->alphabet[j++] = ch;
@@ -138,8 +146,9 @@ hashids_init3(const char *salt, unsigned int min_hash_length,
     result->salt_length = (unsigned int) strlen(result->salt);
 
     /* allocate enough space for separators */
-    result->separators = _hashids_alloc((size_t) (ceil((float)result->alphabet_length / HASHIDS_SEPARATOR_DIVISOR) + 1));
-    if (unlikely(!result->separators)) {
+    result->separators = _hashids_alloc((size_t)
+        (ceil((float)result->alphabet_length / HASHIDS_SEPARATOR_DIVISOR) + 1));
+    if (HASHIDS_UNLIKELY(!result->separators)) {
         hashids_free(result);
         hashids_errno = HASHIDS_ERROR_ALLOC;
         return NULL;
@@ -202,13 +211,13 @@ hashids_init3(const char *salt, unsigned int min_hash_length,
     result->guards_count = (unsigned int) ceil((float)result->alphabet_length
                                                / HASHIDS_GUARD_DIVISOR);
     result->guards = _hashids_alloc(result->guards_count + 1);
-    if (unlikely(!result->guards)) {
+    if (HASHIDS_UNLIKELY(!result->guards)) {
         hashids_free(result);
         hashids_errno = HASHIDS_ERROR_ALLOC;
         return NULL;
     }
 
-    if (result->alphabet_length < 3) {
+    if (HASHIDS_UNLIKELY(result->alphabet_length < 3)) {
         /* take some from separators */
         strncpy(result->guards, result->separators, result->guards_count);
         memmove(result->separators, result->separators + result->guards_count,
@@ -233,7 +242,7 @@ hashids_init3(const char *salt, unsigned int min_hash_length,
 
 /* init with salt and minimum hash length */
 struct hashids_t *
-hashids_init2(const char *salt, unsigned int min_hash_length)
+hashids_init2(const char *salt, size_t min_hash_length)
 {
     return hashids_init3(salt, min_hash_length, HASHIDS_DEFAULT_ALPHABET);
 }
@@ -246,11 +255,11 @@ hashids_init(const char *salt)
 }
 
 /* estimate buffer size (generic) */
-unsigned int
+size_t
 hashids_estimate_encoded_size(struct hashids_t *hashids,
-    unsigned int numbers_count, unsigned long long *numbers)
+    size_t numbers_count, unsigned long long *numbers)
 {
-    unsigned int result_len, i;
+    size_t result_len, i;
     unsigned long long number;
 
     /* start from 1 - the lottery character */
@@ -262,7 +271,7 @@ hashids_estimate_encoded_size(struct hashids_t *hashids,
         /* how long is the hash */
         do {
             ++result_len;
-            number = (unsigned long long) floorl((long double)number / (long double)hashids->alphabet_length);
+            number /= hashids->alphabet_length;
         } while (number);
 
         /* more than 1 number - separator */
@@ -284,18 +293,18 @@ hashids_estimate_encoded_size(struct hashids_t *hashids,
 }
 
 /* estimate buffer size (variadic) */
-unsigned int
+size_t
 hashids_estimate_encoded_size_v(struct hashids_t *hashids,
-    unsigned int numbers_count, ...)
+    size_t numbers_count, ...)
 {
     int i;
-    unsigned int result;
+    size_t result;
     unsigned long long *numbers;
     va_list ap;
 
     numbers = _hashids_alloc(numbers_count * sizeof(unsigned long long));
 
-    if (unlikely(!numbers)) {
+    if (HASHIDS_UNLIKELY(!numbers)) {
         hashids_errno = HASHIDS_ERROR_ALLOC;
         return 0;
     }
@@ -313,25 +322,24 @@ hashids_estimate_encoded_size_v(struct hashids_t *hashids,
 }
 
 /* encode many (generic) */
-unsigned int
+size_t
 hashids_encode(struct hashids_t *hashids, char *buffer,
-    unsigned int numbers_count, unsigned long long *numbers)
+    size_t numbers_count, unsigned long long *numbers)
 {
     /* bail out if no numbers */
-    if (unlikely(!numbers_count)) {
+    if (HASHIDS_UNLIKELY(!numbers_count)) {
         buffer[0] = '\0';
 
         return 0;
     }
 
-    unsigned int i, j, result_len, guard_index, half_length_floor,
-        half_length_ceil;
+    size_t i, j, result_len, guard_index, half_length_floor, half_length_ceil;
     unsigned long long number, number_copy, numbers_hash;
     int p_max, excess;
     char lottery, ch, temp_ch, *p, *buffer_end, *buffer_temp;
 
     /* return an estimation if no buffer */
-    if (unlikely(!buffer)) {
+    if (HASHIDS_UNLIKELY(!buffer)) {
         return hashids_estimate_encoded_size(hashids, numbers_count, numbers);
     }
 
@@ -384,8 +392,7 @@ hashids_encode(struct hashids_t *hashids, char *buffer,
         do {
             ch = hashids->alphabet_copy_1[number % hashids->alphabet_length];
             *buffer_end++ = ch;
-
-            number = (unsigned long long) floorl((long double)number / (long double)hashids->alphabet_length);
+            number /= hashids->alphabet_length;
         } while (number);
 
         /* reverse the hash we got */
@@ -453,18 +460,18 @@ hashids_encode(struct hashids_t *hashids, char *buffer,
 }
 
 /* encode many (variadic) */
-unsigned int
+size_t
 hashids_encode_v(struct hashids_t *hashids, char *buffer,
-    unsigned int numbers_count, ...)
+    size_t numbers_count, ...)
 {
     int i;
-    unsigned int result;
+    size_t result;
     unsigned long long *numbers;
     va_list ap;
 
     numbers = _hashids_alloc(numbers_count * sizeof(unsigned long long));
 
-    if (unlikely(!numbers)) {
+    if (HASHIDS_UNLIKELY(!numbers)) {
         hashids_errno = HASHIDS_ERROR_ALLOC;
         return 0;
     }
@@ -482,7 +489,7 @@ hashids_encode_v(struct hashids_t *hashids, char *buffer,
 }
 
 /* encode one */
-unsigned int
+size_t
 hashids_encode_one(struct hashids_t *hashids, char *buffer,
     unsigned long long number)
 {
@@ -490,10 +497,10 @@ hashids_encode_one(struct hashids_t *hashids, char *buffer,
 }
 
 /* numbers count */
-unsigned int
+size_t
 hashids_numbers_count(struct hashids_t *hashids, char *str)
 {
-    unsigned int numbers_count;
+    size_t numbers_count;
     char ch, *p;
 
     /* skip characters until we find a guard */
@@ -533,11 +540,11 @@ hashids_numbers_count(struct hashids_t *hashids, char *str)
 }
 
 /* decode */
-unsigned int
+size_t
 hashids_decode(struct hashids_t *hashids, char *str,
     unsigned long long *numbers)
 {
-    unsigned int numbers_count;
+    size_t numbers_count;
     unsigned long long number;
     char lottery, ch, *p, *c;
     int p_max;
@@ -624,14 +631,14 @@ hashids_decode(struct hashids_t *hashids, char *str,
 }
 
 /* encode hex */
-unsigned int
+size_t
 hashids_encode_hex(struct hashids_t *hashids, char *buffer,
     const char *hex_str)
 {
     int len;
     char *temp, *p;
+    size_t result;
     unsigned long long number;
-    unsigned int result;
 
     len = strlen(hex_str);
     temp = _hashids_alloc(len + 2);
@@ -659,10 +666,10 @@ hashids_encode_hex(struct hashids_t *hashids, char *buffer,
 }
 
 /* decode hex */
-unsigned int
+size_t
 hashids_decode_hex(struct hashids_t *hashids, char *str, char *output)
 {
-    unsigned int result, i;
+    size_t result, i;
     unsigned long long number;
     char ch, *temp;
 
