@@ -2,39 +2,65 @@
 
 The [C](http://en.wikipedia.org/wiki/C_%28programming_language%29) port of the [Hashids](http://hashids.org/) library.
 
-## Full Documentation
+## Some Documentation
 
 A small C library to generate Youtube-like IDs from one or many numbers.
 Use __Hashids__ when you don't want to expose your database IDs to the user.
 
 Read more about the library at [http://hashids.org/c/](http://hashids.org/c/).
 
+## Building
+
+The C port has become (since version 1.1.0) a regular [autotools](https://autotools.io/)-built library.
+You can build it easily, provided you have `autoconf`, `automake` and other `autotools` stuff installed:
+
+``` bash
+./bootstrap
+./configure
+make
+# make install-strip
+```
+
 ## Usage
 
-The C usage differs marginally than [JavaScript's](http://hashids.org/javascript/) or [Ruby's](http://hashids.org/ruby/) in the matter that nothing is done (auto-magically) for you.
+The C usage differs marginally than [JavaScript's](http://hashids.org/javascript/) or [Ruby's](http://hashids.org/ruby/) in the matter that nothing is done (automagically) for you.
 You'll have to manually allocate and free all memory you need for encoding/decoding.
-The library itself will only allocate the `hashids_t` structure (the handle) on its own, and even then [you've got the power](#memory-allocation).
+The library itself will only allocate the `hashids_t` structure (the _handle_) on its own.
+If you want to roll your own allocator, [look here](#memory-allocation).
 
 ### API
 
 The C version of Hashids works (presumably, and only) with `unsigned long long` arguments.
 Negative (signed) integers are, by design, treated as very big unsigned ones.
 
+Note: The API has changed a bit since version 1.1.0. `hashids_t` is now a type alias of `struct hashids_t`.
+
+#### Preamble
+
+A small header (`hashids.h`) is installed in `${PREFIX}/include`.
+All further examples (unless explicitly shown otherwise) use empty salt for initializations.
+
+``` c
+#include <hashids.h>
+hashids_t hashids;
+hashids = hashids_init(NULL);
+```
+
 #### hashids_free
 
 ``` c
 void
-hashids_free(struct hashids_t *hashids);
+hashids_free(hashids_t *hashids);
 ```
 
 The 'destructor'. This function disposes what you can allocate with the following 3 functions.
-You'll definetely need to call this function when something goes wrong or you're finished (un)hashing your `ULONGLONG`s.
+You'll definetely need to call this function when you're done (un)hashing.
 
 #### hashids_init3
 
 ``` c
-struct hashids_t *
-hashids_init3(const char *salt, unsigned int min_hash_length, const char *alphabet);
+hashids_t *
+hashids_init3(const char *salt, size_t min_hash_length, const char *alphabet);
 ```
 
 The most common initializer.
@@ -42,15 +68,15 @@ The most common initializer.
 Example:
 
 ``` c
-struct hashids_t *hashids;
+hashids_t *hashids;
 hashids = hashids_init3("this is my salt", 0, HASHIDS_DEFAULT_ALPHABET);
 ```
 
 #### hashids_init2
 
 ``` c
-struct hashids_t *
-hashids_init2(const char *salt, unsigned int min_hash_length);
+hashids_t *
+hashids_init2(const char *salt, size_t min_hash_length);
 ```
 
 The same as `hashids_init3` but without the `alpabet` parameter.
@@ -59,7 +85,7 @@ Will use `HASHIDS_DEFAULT_ALPHABET` as alphabet.
 #### hashids_init
 
 ``` c
-struct hashids_t *
+hashids_t *
 hashids_init(const char *salt);
 ```
 
@@ -69,8 +95,8 @@ If you pass `NULL` for `salt` the `HASHIDS_DEFAULT_SALT` will be used (currently
 #### hashids_estimate_encoded_size
 
 ``` c
-unsigned int
-hashids_estimate_encoded_size(struct hashids_t *hashids, unsigned int numbers_count, unsigned long long *numbers);
+size_t
+hashids_estimate_encoded_size(hashids_t *hashids, size_t numbers_count, unsigned long long *numbers);
 ```
 
 Since we have no idea how much bytes an encoded `ULONGLONG` will take, there's this (pessimistic) function:
@@ -79,7 +105,7 @@ Example:
 
 ``` c
 unsigned long long numbers[] = {1ull, 2ull, 3ull, 4ull, 5ull};
-unsigned int bytes_needed;
+size_t bytes_needed;
 bytes_needed = hashids_estimate_encoded_size(hashids, sizeof(numbers) / sizeof(unsigned long long), numbers);
 /* bytes_needed => 12 */
 ```
@@ -87,8 +113,8 @@ bytes_needed = hashids_estimate_encoded_size(hashids, sizeof(numbers) / sizeof(u
 #### hashids_estimate_encoded_size_v
 
 ``` c
-unsigned int
-hashids_estimate_encoded_size_v(struct hashids_t *hashids, unsigned int numbers_count, ...);
+size_t
+hashids_estimate_encoded_size_v(hashids_t *hashids, size_t numbers_count, ...);
 ```
 
 The variadic variant of the `hashids_estimate_encoded_size` function.
@@ -103,8 +129,8 @@ bytes_needed = hashids_estimate_encoded_size_v(hashids, 5, 1ull, 2ull, 3ull, 4ul
 #### hashids_encode
 
 ``` c
-unsigned int
-hashids_encode(struct hashids_t *hashids, char *buffer, unsigned int numbers_count, unsigned long long *numbers);
+size_t
+hashids_encode(hashids_t *hashids, char *buffer, size_t numbers_count, unsigned long long *numbers);
 ```
 
 The common encoding encoder.
@@ -114,21 +140,21 @@ The returned value is the count of bytes encoded - if 0, something went south...
 Example:
 
 ``` c
-unsigned int bytes_encoded;
+size_t bytes_encoded;
 char hash[512];
 unsigned long long numbers[] = {1ull};
 bytes_encoded = hashids_encode(hashids, hash, sizeof(numbers) / sizeof(unsigned long long), numbers);
 /* hash => "NV", bytes_encoded => 2 */
 unsigned long long numbers2[] = {1ull, 2ull, 3ull, 4ull, 5ull};
 bytes_encoded = hashids_encode(hashids, hash, sizeof(numbers2) / sizeof(unsigned long long), numbers2);
-/* hash => "zoHWuNhktp", bytes_encoded => 10 */
+/* hash => "ADf9h9i0sQ", bytes_encoded => 10 */
 ```
 
 #### hashids_encode_v
 
 ``` c
-unsigned int
-hashids_encode_v(struct hashids_t *hashids, char *buffer, unsigned int numbers_count, ...);
+size_t
+hashids_encode_v(hashids_t *hashids, char *buffer, size_t numbers_count, ...);
 ```
 
 The variadic variant of `hashids_encode`.
@@ -139,14 +165,14 @@ Example:
 bytes_encoded = hashids_encode_v(hashids, hash, 1, 1ull);
 /* hash => "NV", bytes_encoded => 2 */
 bytes_encoded = hashids_encode_v(hashids, hash, 5, 1ull, 2ull, 3ull, 4ull, 5ull);
-/* hash => "zoHWuNhktp", bytes_encoded => 10 */
+/* hash => "ADf9h9i0sQ", bytes_encoded => 10 */
 ```
 
 #### hashids_encode_one
 
 ``` c
-unsigned int
-hashids_encode_one(struct hashids_t *hashids, char *buffer, unsigned long long number);
+size_t
+hashids_encode_one(hashids_t *hashids, char *buffer, unsigned long long number);
 ```
 
 A shorthand function encoding just one `ULONGLONG`.
@@ -155,55 +181,51 @@ Example:
 
 ``` c
 bytes_encoded = hashids_encode_one(hashids, hash, 12345);
-/* hash => "NkK9", bytes_encoded => 4 */
+/* hash => "j0gW", bytes_encoded => 4 */
 ```
 
 #### hashids_numbers_count
 
 ``` c
-unsigned int
-hashids_numbers_count(struct hashids_t *hashids, char *str);
+size_t
+hashids_numbers_count(hashids_t *hashids, char *str);
 ```
 
-If you thought that encoding is easy, think again.
-Decoding is just as tough as encoding is - you'll have to manage the memory yourself.
-Luckily, we thought about that too.
-
-This nice function will tell you how much `ULONGLONG`s are hashed in the hash you'll be decoding.
-If the function returns `0`, the hash is probably hashed with a different salt.
-It's up to you to allocate `result * sizeof(unsigned long long)` enough memory yourself.
+Returns how many `ULONGLONG`s are encoded in a string.
+If the function returns `0`, the hash is probably hashed with a different salt/alphabet.
+It's up to you to allocate `result * sizeof(unsigned long long)` memory yourself.
 
 Example:
 
 ``` c
-unsigned int numbers_count = hashids_numbers_count(hashids, "zoHWuNhktp");
+size_t numbers_count = hashids_numbers_count(hashids, "ADf9h9i0sQ");
 /* numbers_count => 5 */
 ```
 
 #### hashids_decode
 
 ``` c
-unsigned int
-hashids_decode(struct hashids_t *hashids, char *str, unsigned long long *numbers);
+size_t
+hashids_decode(hashids_t *hashids, char *str, unsigned long long *numbers);
 ```
 
 The common decoding decoder.
 Will decode a string hash to an array of `ULONGLONG`s.
-If the function returns `0`, the hash is probably hashed with a different salt.
+If the function returns `0`, the hash is probably hashed with a different salt/alphabet.
 
 Example:
 
 ``` c
 unsigned long long numbers[5];
-result = hashids_decode(hashids, "p2xkL3CK33JjcrrZ8vsw4YRZueZX9k", numbers);
+result = hashids_decode(hashids, "QkoW1vt955nxCVVjZDt5VD2PTgBP72", numbers);
 /* numbers = {21979508, 35563591, 57543099, 93106690, 150649789}, result => 5 */
 ```
 
 #### hashids_encode_hex
 
 ``` c
-unsigned int
-hashids_encode_hex(struct hashids_t *hashids, char *buffer, const char *hex_str);
+size_t
+hashids_encode_hex(hashids_t *hashids, char *buffer, const char *hex_str);
 ```
 
 Encodes a hex string rather than a number.
@@ -212,14 +234,14 @@ Example:
 
 ``` c
 bytes_encoded = hashids_encode_hex(hashids, hash, "C0FFEE");
-/* hash => "6N6LO4", result => 6 */
+/* hash => "k7AVov", result => 6 */
 ```
 
 #### hashids_decode_hex
 
 ``` c
-unsigned int
-hashids_decode_hex(struct hashids_t *hashids, char *str, char *output);
+size_t
+hashids_decode_hex(hashids_t *hashids, char *str, char *output);
 ```
 
 Decodes a hash to a hex string rather than to a number.
@@ -228,7 +250,7 @@ Example:
 
 ``` c
 char str[18];   /* sizeof(unsigned long long) * 2 + 2 */
-result = hashids_decode_hex(hashids, "6N6LO4", str);
+result = hashids_decode_hex(hashids, "k7AVov", str);
 /* str => "C0FFEE", result => 1 */
 ```
 
@@ -249,40 +271,18 @@ The library uses its own `extern int hashids_errno` for error handling, thus it 
 ## Memory allocation
 
 Since the `hashids_init*` (and some of the `*_v`) functions are memory-dependent, this library is trying to be allocator-agnostic.
-If you roll your own allocator, and for some reason you don't like external libraries calling `malloc`/`calloc`, we've certainly got you covered.
-Assuming that you know regular C syntax, we define 2 externals:
+If you roll your own allocator, or for some reason you don't like external libraries calling `malloc`/`calloc`, you can redefine the memory handling functions:
 
 ``` c
-extern void *(*_hashids_alloc)(size_t size);
-extern void (*_hashids_free)(void *ptr);
+void *(*_hashids_alloc)(size_t size)    = hashids_alloc_f;
+void (*_hashids_free)(void *ptr)        = hashids_free_f;
 ```
 
-The library implementation is as simple as possible:
-
-``` c
-static void *
-hashids_alloc_f(size_t size)
-{
-    return calloc(size, 1);
-}
-
-static void
-hashids_free_f(void *ptr)
-{
-    free(ptr);
-}
-
-void *(*_hashids_alloc)(size_t size) = hashids_alloc_f;
-void (*_hashids_free)(void *ptr) = hashids_free_f;
-```
-
-Feel free to reassign those at your will.
-
-Oh, PLEASE __NOTE__: `hashids_init3` (most likely) relies on that memory allocated is zero-initialized.
+Please note that the `hashids_init*` functions (most likely) rely on zero-initialized memory.
 
 ## CLI
 
-As you might've noticed, there's a command line utility utilizing the `hashids` library and providing almost all the functionality in the shell.
+The library also has a command line utility providing all the functionality in the shell.
 
 The usage is not much different. If you have any trouble, just run the command without any arguments and read the help lines.
 

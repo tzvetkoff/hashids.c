@@ -31,10 +31,28 @@ usage(const char *program_invocation_name, FILE *out)
     exit(out == stderr ? EXIT_FAILURE : EXIT_SUCCESS);
 }
 
+static unsigned long long
+parse_number(const char *s, char **p)
+{
+    int radix = 10;
+
+    if (*s == '0') {
+        radix = 8;
+        ++s;
+
+        if (*s == 'x' || *s == 'X') {
+            radix = 16;
+            ++s;
+        }
+    }
+
+    return strtoull(s, p, radix);
+}
+
 int
 main(int argc, char **argv)
 {
-    struct hashids_t *hashids;
+    hashids_t *hashids;
     char *salt = HASHIDS_DEFAULT_SALT, *alphabet = HASHIDS_DEFAULT_ALPHABET,
         *buffer, *p, str[18];
     unsigned int command = COMMAND_ENCODE, hex = 0;
@@ -154,7 +172,7 @@ main(int argc, char **argv)
         }
 
         for (i = optind; i < argc; ++i) {
-            *numbers_ptr++ = strtoull(argv[i], &p, 10);
+            *numbers_ptr++ = parse_number(argv[i], &p);
             if (p == argv[i]) {
                 printf("Invalid number: %s\n", argv[i]);
                 free(numbers);

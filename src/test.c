@@ -115,7 +115,7 @@ f(const char *fmt, ...)
 int
 main(int argc, char **argv)
 {
-    struct hashids_t *hashids;
+    hashids_t *hashids;
     char buffer[256], *error = 0;
     size_t i, j, result;
     unsigned long long numbers[16];

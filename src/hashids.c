@@ -60,7 +60,7 @@ hashids_shuffle(char *str, size_t str_length, char *salt, size_t salt_length)
 
 /* "destructor" */
 void
-hashids_free(struct hashids_t *hashids)
+hashids_free(hashids_t *hashids)
 {
     if (hashids) {
         if (hashids->alphabet) {
@@ -87,18 +87,17 @@ hashids_free(struct hashids_t *hashids)
 }
 
 /* common init */
-struct hashids_t *
+hashids_t *
 hashids_init3(const char *salt, size_t min_hash_length, const char *alphabet)
 {
-    struct hashids_t *result;
-    unsigned int i, j;
-    size_t len;
+    hashids_t *result;
+    size_t i, j, len;
     char ch, *p;
 
     hashids_errno = HASHIDS_ERROR_OK;
 
     /* allocate the structure */
-    result = _hashids_alloc(sizeof(struct hashids_t));
+    result = _hashids_alloc(sizeof(hashids_t));
     if (HASHIDS_UNLIKELY(!result)) {
         hashids_errno = HASHIDS_ERROR_ALLOC;
         return NULL;
@@ -143,7 +142,7 @@ hashids_init3(const char *salt, size_t min_hash_length, const char *alphabet)
 
     /* copy salt */
     result->salt = strdup(salt ? salt : HASHIDS_DEFAULT_SALT);
-    result->salt_length = (unsigned int) strlen(result->salt);
+    result->salt_length = strlen(result->salt);
 
     /* allocate enough space for separators */
     result->separators = _hashids_alloc((size_t)
@@ -182,7 +181,7 @@ hashids_init3(const char *salt, size_t min_hash_length, const char *alphabet)
     if (!result->separators_count
         || (((float)result->alphabet_length / (float)result->separators_count)
             > HASHIDS_SEPARATOR_DIVISOR)) {
-        unsigned int separators_count = (unsigned int)ceil(
+        size_t separators_count = (size_t)ceil(
             (float)result->alphabet_length / HASHIDS_SEPARATOR_DIVISOR);
 
         if (separators_count == 1) {
@@ -191,7 +190,7 @@ hashids_init3(const char *salt, size_t min_hash_length, const char *alphabet)
 
         if (separators_count > result->separators_count) {
             /* we need more separators - get some from alphabet */
-            int diff = separators_count - result->separators_count;
+            size_t diff = separators_count - result->separators_count;
             strncat(result->separators, result->alphabet, diff);
             memmove(result->alphabet, result->alphabet + diff,
                 result->alphabet_length - diff + 1);
@@ -210,7 +209,7 @@ hashids_init3(const char *salt, size_t min_hash_length, const char *alphabet)
         result->salt, result->salt_length);
 
     /* allocate guards */
-    result->guards_count = (unsigned int) ceil((float)result->alphabet_length
+    result->guards_count = (size_t)ceil((float)result->alphabet_length
                                                / HASHIDS_GUARD_DIVISOR);
     result->guards = _hashids_alloc(result->guards_count + 1);
     if (HASHIDS_UNLIKELY(!result->guards)) {
@@ -243,14 +242,14 @@ hashids_init3(const char *salt, size_t min_hash_length, const char *alphabet)
 }
 
 /* init with salt and minimum hash length */
-struct hashids_t *
+hashids_t *
 hashids_init2(const char *salt, size_t min_hash_length)
 {
     return hashids_init3(salt, min_hash_length, HASHIDS_DEFAULT_ALPHABET);
 }
 
 /* init with hash only */
-struct hashids_t *
+hashids_t *
 hashids_init(const char *salt)
 {
     return hashids_init2(salt, HASHIDS_DEFAULT_MIN_HASH_LENGTH);
@@ -258,7 +257,7 @@ hashids_init(const char *salt)
 
 /* estimate buffer size (generic) */
 size_t
-hashids_estimate_encoded_size(struct hashids_t *hashids,
+hashids_estimate_encoded_size(hashids_t *hashids,
     size_t numbers_count, unsigned long long *numbers)
 {
     size_t result_len, i;
@@ -296,11 +295,10 @@ hashids_estimate_encoded_size(struct hashids_t *hashids,
 
 /* estimate buffer size (variadic) */
 size_t
-hashids_estimate_encoded_size_v(struct hashids_t *hashids,
+hashids_estimate_encoded_size_v(hashids_t *hashids,
     size_t numbers_count, ...)
 {
-    int i;
-    size_t result;
+    size_t i, result;
     unsigned long long *numbers;
     va_list ap;
 
@@ -325,7 +323,7 @@ hashids_estimate_encoded_size_v(struct hashids_t *hashids,
 
 /* encode many (generic) */
 size_t
-hashids_encode(struct hashids_t *hashids, char *buffer,
+hashids_encode(hashids_t *hashids, char *buffer,
     size_t numbers_count, unsigned long long *numbers)
 {
     /* bail out if no numbers */
@@ -463,7 +461,7 @@ hashids_encode(struct hashids_t *hashids, char *buffer,
 
 /* encode many (variadic) */
 size_t
-hashids_encode_v(struct hashids_t *hashids, char *buffer,
+hashids_encode_v(hashids_t *hashids, char *buffer,
     size_t numbers_count, ...)
 {
     int i;
@@ -492,7 +490,7 @@ hashids_encode_v(struct hashids_t *hashids, char *buffer,
 
 /* encode one */
 size_t
-hashids_encode_one(struct hashids_t *hashids, char *buffer,
+hashids_encode_one(hashids_t *hashids, char *buffer,
     unsigned long long number)
 {
     return hashids_encode(hashids, buffer, 1, &number);
@@ -500,7 +498,7 @@ hashids_encode_one(struct hashids_t *hashids, char *buffer,
 
 /* numbers count */
 size_t
-hashids_numbers_count(struct hashids_t *hashids, char *str)
+hashids_numbers_count(hashids_t *hashids, char *str)
 {
     size_t numbers_count;
     char ch, *p;
@@ -543,7 +541,7 @@ hashids_numbers_count(struct hashids_t *hashids, char *str)
 
 /* decode */
 size_t
-hashids_decode(struct hashids_t *hashids, char *str,
+hashids_decode(hashids_t *hashids, char *str,
     unsigned long long *numbers)
 {
     size_t numbers_count;
@@ -634,7 +632,7 @@ hashids_decode(struct hashids_t *hashids, char *str,
 
 /* encode hex */
 size_t
-hashids_encode_hex(struct hashids_t *hashids, char *buffer,
+hashids_encode_hex(hashids_t *hashids, char *buffer,
     const char *hex_str)
 {
     int len;
@@ -669,7 +667,7 @@ hashids_encode_hex(struct hashids_t *hashids, char *buffer,
 
 /* decode hex */
 size_t
-hashids_decode_hex(struct hashids_t *hashids, char *str, char *output)
+hashids_decode_hex(hashids_t *hashids, char *str, char *output)
 {
     size_t result, i;
     unsigned long long number;
