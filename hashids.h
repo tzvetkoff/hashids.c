@@ -69,7 +69,7 @@ struct hashids_t {
 
 /* exported function definitions */
 void
-hashids_shuffle(char *str, int str_length, char *salt, int salt_length);
+hashids_shuffle(char *str, size_t str_length, char *salt, size_t salt_length);
 
 void
 hashids_free(struct hashids_t *hashids);

@@ -6,6 +6,9 @@
 
 #include "hashids.h"
 
+#define likely(x)       __builtin_expect(!!(x), 1)
+#define unlikely(x)     __builtin_expect(!!(x), 0)
+
 /* exported hashids_errno */
 int hashids_errno;
 
@@ -27,9 +30,9 @@ void (*_hashids_free)(void *ptr) = hashids_free_f;
 
 /* shuffle */
 void
-hashids_shuffle(char *str, int str_length, char *salt, int salt_length)
+hashids_shuffle(char *str, size_t str_length, char *salt, size_t salt_length)
 {
-    int i, j, v, p;
+    size_t i, j, v, p;
     char temp;
 
     if (!salt_length) {
@@ -88,7 +91,7 @@ hashids_init3(const char *salt, unsigned int min_hash_length,
 
     /* allocate the structure */
     result = _hashids_alloc(sizeof(struct hashids_t));
-    if (!result) {
+    if (unlikely(!result)) {
         hashids_errno = HASHIDS_ERROR_ALLOC;
         return NULL;
     }
@@ -98,8 +101,8 @@ hashids_init3(const char *salt, unsigned int min_hash_length,
     result->alphabet = _hashids_alloc(estimated_alphabet_length);
     result->alphabet_copy_1 = _hashids_alloc(estimated_alphabet_length);
     result->alphabet_copy_2 = _hashids_alloc(estimated_alphabet_length);
-    if (!result->alphabet || !result->alphabet_copy_1
-        || !result->alphabet_copy_2) {
+    if (unlikely(!result->alphabet || !result->alphabet_copy_1
+        || !result->alphabet_copy_2)) {
         hashids_free(result);
         hashids_errno = HASHIDS_ERROR_ALLOC;
         return NULL;
@@ -136,7 +139,7 @@ hashids_init3(const char *salt, unsigned int min_hash_length,
 
     /* allocate enough space for separators */
     result->separators = _hashids_alloc((size_t) (ceil((float)result->alphabet_length / HASHIDS_SEPARATOR_DIVISOR) + 1));
-    if (!result->separators) {
+    if (unlikely(!result->separators)) {
         hashids_free(result);
         hashids_errno = HASHIDS_ERROR_ALLOC;
         return NULL;
@@ -199,7 +202,7 @@ hashids_init3(const char *salt, unsigned int min_hash_length,
     result->guards_count = (unsigned int) ceil((float)result->alphabet_length
                                                / HASHIDS_GUARD_DIVISOR);
     result->guards = _hashids_alloc(result->guards_count + 1);
-    if (!result->guards) {
+    if (unlikely(!result->guards)) {
         hashids_free(result);
         hashids_errno = HASHIDS_ERROR_ALLOC;
         return NULL;
@@ -292,7 +295,7 @@ hashids_estimate_encoded_size_v(struct hashids_t *hashids,
 
     numbers = _hashids_alloc(numbers_count * sizeof(unsigned long long));
 
-    if (!numbers) {
+    if (unlikely(!numbers)) {
         hashids_errno = HASHIDS_ERROR_ALLOC;
         return 0;
     }
@@ -315,7 +318,7 @@ hashids_encode(struct hashids_t *hashids, char *buffer,
     unsigned int numbers_count, unsigned long long *numbers)
 {
     /* bail out if no numbers */
-    if (!numbers_count) {
+    if (unlikely(!numbers_count)) {
         buffer[0] = '\0';
 
         return 0;
@@ -328,7 +331,7 @@ hashids_encode(struct hashids_t *hashids, char *buffer,
     char lottery, ch, temp_ch, *p, *buffer_end, *buffer_temp;
 
     /* return an estimation if no buffer */
-    if (!buffer) {
+    if (unlikely(!buffer)) {
         return hashids_estimate_encoded_size(hashids, numbers_count, numbers);
     }
 
@@ -461,7 +464,7 @@ hashids_encode_v(struct hashids_t *hashids, char *buffer,
 
     numbers = _hashids_alloc(numbers_count * sizeof(unsigned long long));
 
-    if (!numbers) {
+    if (unlikely(!numbers)) {
         hashids_errno = HASHIDS_ERROR_ALLOC;
         return 0;
     }
