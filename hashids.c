@@ -262,7 +262,7 @@ hashids_estimate_encoded_size(struct hashids_t *hashids,
         /* how long is the hash */
         do {
             ++result_len;
-            number /= hashids->alphabet_length;
+            number = (unsigned long long) floorl((long double)number / (long double)hashids->alphabet_length);
         } while (number);
 
         /* more than 1 number - separator */
