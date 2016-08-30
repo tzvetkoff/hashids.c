@@ -86,6 +86,9 @@ struct testcase_t testcases[] = {
     {"this is my salt", 0, "cfhistuCFHISTU+-", 1,
         {1337ull}, "+-+-++---++-"},
 
+    {"\\7ULC'", 22, "@'l*p9n]);+7>Ar(\\", 1,
+            {190126ull}, "9];r(An97\\]]\\()>7>\\)+]"},
+
     {NULL, 0, NULL, 0, {0ull}, NULL}
 };
 

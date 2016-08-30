@@ -173,8 +173,10 @@ hashids_init3(const char *salt, size_t min_hash_length, const char *alphabet)
     result->alphabet_length -= result->separators_count;
 
     /* shuffle the separators */
-    hashids_shuffle(result->separators, result->separators_count,
-        result->salt, result->salt_length);
+    if (result->separators_count) {
+        hashids_shuffle(result->separators, result->separators_count,
+                        result->salt, result->salt_length);
+    }
 
     /* check if we have any/enough separators */
     if (!result->separators_count
