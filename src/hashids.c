@@ -258,10 +258,10 @@ hashids_init(const char *salt)
 /* estimate buffer size (generic) */
 size_t
 hashids_estimate_encoded_size(hashids_t *hashids,
-    size_t numbers_count, unsigned long long *numbers)
+    size_t numbers_count, hashids_number_t *numbers)
 {
     size_t result_len, i;
-    unsigned long long number;
+    hashids_number_t number;
 
     /* start from 1 - the lottery character */
     result_len = 1;
@@ -299,10 +299,10 @@ hashids_estimate_encoded_size_v(hashids_t *hashids,
     size_t numbers_count, ...)
 {
     size_t i, result;
-    unsigned long long *numbers;
+    hashids_number_t *numbers;
     va_list ap;
 
-    numbers = _hashids_alloc(numbers_count * sizeof(unsigned long long));
+    numbers = _hashids_alloc(numbers_count * sizeof(hashids_number_t));
 
     if (HASHIDS_UNLIKELY(!numbers)) {
         hashids_errno = HASHIDS_ERROR_ALLOC;
@@ -311,7 +311,7 @@ hashids_estimate_encoded_size_v(hashids_t *hashids,
 
     va_start(ap, numbers_count);
     for (i = 0; i < numbers_count; ++i) {
-        numbers[i] = va_arg(ap, unsigned long long);
+        numbers[i] = va_arg(ap, hashids_number_t);
     }
     va_end(ap);
 
@@ -324,7 +324,7 @@ hashids_estimate_encoded_size_v(hashids_t *hashids,
 /* encode many (generic) */
 size_t
 hashids_encode(hashids_t *hashids, char *buffer,
-    size_t numbers_count, unsigned long long *numbers)
+    size_t numbers_count, hashids_number_t *numbers)
 {
     /* bail out if no numbers */
     if (HASHIDS_UNLIKELY(!numbers_count)) {
@@ -334,7 +334,7 @@ hashids_encode(hashids_t *hashids, char *buffer,
     }
 
     size_t i, j, result_len, guard_index, half_length_floor, half_length_ceil;
-    unsigned long long number, number_copy, numbers_hash;
+    hashids_number_t number, number_copy, numbers_hash;
     int p_max, excess;
     char lottery, ch, temp_ch, *p, *buffer_end, *buffer_temp;
 
@@ -466,10 +466,10 @@ hashids_encode_v(hashids_t *hashids, char *buffer,
 {
     int i;
     size_t result;
-    unsigned long long *numbers;
+    hashids_number_t *numbers;
     va_list ap;
 
-    numbers = _hashids_alloc(numbers_count * sizeof(unsigned long long));
+    numbers = _hashids_alloc(numbers_count * sizeof(hashids_number_t));
 
     if (HASHIDS_UNLIKELY(!numbers)) {
         hashids_errno = HASHIDS_ERROR_ALLOC;
@@ -478,7 +478,7 @@ hashids_encode_v(hashids_t *hashids, char *buffer,
 
     va_start(ap, numbers_count);
     for (i = 0; i < numbers_count; ++i) {
-        numbers[i] = va_arg(ap, unsigned long long);
+        numbers[i] = va_arg(ap, hashids_number_t);
     }
     va_end(ap);
 
@@ -491,7 +491,7 @@ hashids_encode_v(hashids_t *hashids, char *buffer,
 /* encode one */
 size_t
 hashids_encode_one(hashids_t *hashids, char *buffer,
-    unsigned long long number)
+    hashids_number_t number)
 {
     return hashids_encode(hashids, buffer, 1, &number);
 }
@@ -542,10 +542,10 @@ hashids_numbers_count(hashids_t *hashids, char *str)
 /* decode */
 size_t
 hashids_decode(hashids_t *hashids, char *str,
-    unsigned long long *numbers)
+    hashids_number_t *numbers)
 {
     size_t numbers_count;
-    unsigned long long number;
+    hashids_number_t number;
     char lottery, ch, *p, *c;
     int p_max;
 
@@ -638,7 +638,7 @@ hashids_encode_hex(hashids_t *hashids, char *buffer,
     int len;
     char *temp, *p;
     size_t result;
-    unsigned long long number;
+    hashids_number_t number;
 
     len = strlen(hex_str);
     temp = _hashids_alloc(len + 2);
@@ -670,7 +670,7 @@ size_t
 hashids_decode_hex(hashids_t *hashids, char *str, char *output)
 {
     size_t result, i;
-    unsigned long long number;
+    hashids_number_t number;
     char ch, *temp;
 
     result = hashids_numbers_count(hashids, str);

@@ -31,7 +31,7 @@ usage(const char *program_invocation_name, FILE *out)
     exit(out == stderr ? EXIT_FAILURE : EXIT_SUCCESS);
 }
 
-static unsigned long long
+static hashids_number_t
 parse_number(const char *s, char **p)
 {
     int radix = 10;
@@ -57,7 +57,7 @@ main(int argc, char **argv)
         *buffer, *p, str[18];
     unsigned int command = COMMAND_ENCODE, hex = 0;
     size_t min_hash_length = HASHIDS_DEFAULT_MIN_HASH_LENGTH, numbers_count;
-    unsigned long long number, *numbers, *numbers_ptr;
+    hashids_number_t number, *numbers, *numbers_ptr;
     int ch, i, j;
 
     static const struct option longopts[] = {
@@ -140,7 +140,7 @@ main(int argc, char **argv)
     if (command == COMMAND_ENCODE) {
         /* hex mode */
         if (hex) {
-            number = (unsigned long long)-1;
+            number = (hashids_number_t)-1;
             buffer = calloc(hashids_estimate_encoded_size(hashids, 1, &number),
                 1);
 
@@ -162,7 +162,7 @@ main(int argc, char **argv)
 
         /* collect numbers */
         numbers_count = argc - optind;
-        numbers = calloc(numbers_count, sizeof(unsigned long long));
+        numbers = calloc(numbers_count, sizeof(hashids_number_t));
         numbers_ptr = numbers;
 
         if (!numbers) {
@@ -231,7 +231,7 @@ main(int argc, char **argv)
             return EXIT_FAILURE;
         }
 
-        numbers = calloc(numbers_count, sizeof(unsigned long long));
+        numbers = calloc(numbers_count, sizeof(hashids_number_t));
 
         if (!numbers) {
             printf("Cannot allocate memory for numbers\n");

@@ -14,7 +14,7 @@ struct testcase_t {
     size_t min_hash_length;
     const char *alphabet;
     size_t numbers_count;
-    unsigned long long numbers[16];
+    hashids_number_t numbers[16];
     const char *expected_hash;
 };
 
@@ -118,7 +118,7 @@ main(int argc, char **argv)
     hashids_t *hashids;
     char buffer[256], *error = 0;
     size_t i, j, result;
-    unsigned long long numbers[16];
+    hashids_number_t numbers[16];
     struct testcase_t testcase;
     int fail;
 
@@ -197,7 +197,7 @@ main(int argc, char **argv)
 
         /* compare decoded numbers */
         if (memcmp(numbers, testcase.numbers,
-                result * sizeof(unsigned long long))) {
+                result * sizeof(hashids_number_t))) {
             printf("F");
             failures[j++] = f("#%d: hashids_decode() decoding error", i + 1);
             fail = 1;
