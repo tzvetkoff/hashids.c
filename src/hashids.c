@@ -280,9 +280,7 @@ hashids_estimate_encoded_size(hashids_t *hashids,
     /* minimum length checks */
     if (result_len++ < hashids->min_hash_length) {
         if (result_len++ < hashids->min_hash_length) {
-            while (result_len < hashids->min_hash_length) {
-                result_len += hashids->alphabet_length;
-            }
+          result_len += hashids->alphabet_length * (hashids->min_hash_length - result_len);
         }
     }
 
