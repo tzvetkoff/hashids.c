@@ -270,11 +270,7 @@ hashids_estimate_encoded_size(hashids_t *hashids,
         number = numbers[i];
 
         /* how long is the hash */
-        do {
-            ++result_len;
-            number /= hashids->alphabet_length;
-        } while (number);
-
+        result_len = (size_t)floor(log(number) / log(hashids->alphabet_length));
         /* more than 1 number - separator */
         if (i + 1 < numbers_count) {
             ++result_len;
