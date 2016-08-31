@@ -87,7 +87,7 @@ struct testcase_t testcases[] = {
         {1337ull}, "+-+-++---++-"},
 
     {"\\7ULC'", 22, "@'l*p9n]);+7>Ar(\\", 1,
-            {190126ull}, "9];r(An97\\]]\\()>7>\\)+]"},
+        {190126ull}, "9];r(An97\\]]\\()>7>\\)+]"},
 
     {NULL, 0, NULL, 0, {0ull}, NULL}
 };
@@ -178,8 +178,9 @@ main(int argc, char **argv)
         /* compare encoded string */
         if (strcmp(buffer, testcase.expected_hash) != 0) {
             printf("F");
-            failures[j++] = f("#%d: hashids_encode() buffer %s does not match "
-                "expected hash %s", i + 1, buffer, testcase.expected_hash);
+            failures[j++] = f("#%d: hashids_encode() result \"%s\" does not "
+                "match expected hash \"%s\"", i + 1, buffer,
+                testcase.expected_hash);
             fail = 1;
         }
 

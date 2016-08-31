@@ -175,13 +175,13 @@ hashids_init3(const char *salt, size_t min_hash_length, const char *alphabet)
     /* shuffle the separators */
     if (result->separators_count) {
         hashids_shuffle(result->separators, result->separators_count,
-                        result->salt, result->salt_length);
+            result->salt, result->salt_length);
     }
 
     /* check if we have any/enough separators */
     if (!result->separators_count
         || (((float)result->alphabet_length / (float)result->separators_count)
-                > HASHIDS_SEPARATOR_DIVISOR)) {
+            > HASHIDS_SEPARATOR_DIVISOR)) {
         unsigned int separators_count = (unsigned int)ceil(
             (float)result->alphabet_length / HASHIDS_SEPARATOR_DIVISOR);
 
