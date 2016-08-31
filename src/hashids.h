@@ -1,6 +1,10 @@
 #ifndef HASHIDS_H
 #define HASHIDS_H 1
 
+#include <stdint.h>
+
+typedef uint_fast64_t hashids_number_t;
+
 /* version constants */
 #define HASHIDS_VERSION "1.0.1"
 #define HASHIDS_VERSION_MAJOR 1
@@ -87,7 +91,7 @@ hashids_init(const char *salt);
 
 size_t
 hashids_estimate_encoded_size(hashids_t *hashids,
-    size_t numbers_count, unsigned long long *numbers);
+    size_t numbers_count, hashids_number_t *numbers);
 
 size_t
 hashids_estimate_encoded_size_v(hashids_t *hashids,
@@ -95,7 +99,7 @@ hashids_estimate_encoded_size_v(hashids_t *hashids,
 
 size_t
 hashids_encode(hashids_t *hashids, char *buffer,
-    size_t numbers_count, unsigned long long *numbers);
+    size_t numbers_count, hashids_number_t *numbers);
 
 size_t
 hashids_encode_v(hashids_t *hashids, char *buffer,
@@ -103,14 +107,14 @@ hashids_encode_v(hashids_t *hashids, char *buffer,
 
 size_t
 hashids_encode_one(hashids_t *hashids, char *buffer,
-    unsigned long long number);
+    hashids_number_t number);
 
 size_t
 hashids_numbers_count(hashids_t *hashids, char *str);
 
 size_t
 hashids_decode(hashids_t *hashids, char *str,
-    unsigned long long *numbers);
+    hashids_number_t *numbers);
 
 size_t
 hashids_encode_hex(hashids_t *hashids, char *buffer,
