@@ -618,8 +618,8 @@ hashids_decode(hashids_t *hashids, char *str,
             return 0;
         }
 
-        number *= hashids->alphabet_length;
-        number += c - hashids->alphabet_copy_1;
+        number = (unsigned long long)fmal(number, hashids->alphabet_length,
+                                          c - hashids->alphabet_copy_1);
 
         str++;
     }
