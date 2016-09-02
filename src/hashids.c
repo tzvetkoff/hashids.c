@@ -5,6 +5,7 @@
 #include <math.h>
 
 #include "hashids.h"
+#include "macros.h"
 
 #ifndef __has_builtin
 #   define __has_builtin(x) (0)
@@ -47,7 +48,7 @@ hashids_shuffle(char *str, size_t str_length, char *salt, size_t salt_length)
         return;
     }
 
-    for (i = str_length - 1, v = 0, p = 0; i > 0; --i, ++v) {
+    for (i = str_length - 1, v = 0, p = 0; i > 32; --i, ++v) {
         if (v == salt_length) {
           v = 0;
         }
@@ -57,6 +58,76 @@ hashids_shuffle(char *str, size_t str_length, char *salt, size_t salt_length)
         temp = str[i];
         str[i] = str[j];
         str[j] = temp;
+    }
+
+    // Unrolled loop. See macros.h
+    switch (i) {
+      case 32:
+      SHUFFLE_ITERATION(32)
+      case 31:
+      SHUFFLE_ITERATION(31)
+      case 30:
+      SHUFFLE_ITERATION(30)
+      case 29:
+      SHUFFLE_ITERATION(29)
+      case 28:
+      SHUFFLE_ITERATION(28)
+      case 27:
+      SHUFFLE_ITERATION(27)
+      case 26:
+      SHUFFLE_ITERATION(26)
+      case 25:
+      SHUFFLE_ITERATION(25)
+      case 24:
+      SHUFFLE_ITERATION(24)
+      case 23:
+      SHUFFLE_ITERATION(23)
+      case 22:
+      SHUFFLE_ITERATION(22)
+      case 21:
+      SHUFFLE_ITERATION(21)
+      case 20:
+      SHUFFLE_ITERATION(20)
+      case 19:
+      SHUFFLE_ITERATION(19)
+      case 18:
+      SHUFFLE_ITERATION(18)
+      case 17:
+      SHUFFLE_ITERATION(17)
+      case 16:
+      SHUFFLE_ITERATION(16)
+      case 15:
+      SHUFFLE_ITERATION(15)
+      case 14:
+      SHUFFLE_ITERATION(14)
+      case 13:
+      SHUFFLE_ITERATION(13)
+      case 12:
+      SHUFFLE_ITERATION(12)
+      case 11:
+      SHUFFLE_ITERATION(11)
+      case 10:
+      SHUFFLE_ITERATION(10)
+      case 9:
+      SHUFFLE_ITERATION(9)
+      case 8:
+      SHUFFLE_ITERATION(8)
+      case 7:
+      SHUFFLE_ITERATION(7)
+      case 6:
+      SHUFFLE_ITERATION(6)
+      case 5:
+      SHUFFLE_ITERATION(5)
+      case 4:
+      SHUFFLE_ITERATION(4)
+      case 3:
+      SHUFFLE_ITERATION(3)
+      case 2:
+      SHUFFLE_ITERATION(2)
+      case 1:
+      SHUFFLE_ITERATION(1)
+      case 0:
+        break;
     }
 }
 
