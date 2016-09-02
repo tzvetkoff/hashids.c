@@ -48,7 +48,9 @@ hashids_shuffle(char *str, size_t str_length, char *salt, size_t salt_length)
     }
 
     for (i = str_length - 1, v = 0, p = 0; i > 0; --i, ++v) {
-        v %= salt_length;
+        if (v == salt_length) {
+          v = 0;
+        }
         p += salt[v];
         j = (salt[v] + v + p) % i;
 
