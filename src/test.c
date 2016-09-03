@@ -212,6 +212,7 @@ main(int argc, char **argv)
 
     for (i = 0; i < j; ++i) {
         printf("%s\n", failures[i]);
+        free(failures[i]);
     }
 
     if (j) {
