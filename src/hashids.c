@@ -36,25 +36,61 @@ hashids_free_f(void *ptr)
 void *(*_hashids_alloc)(size_t size) = hashids_alloc_f;
 void (*_hashids_free)(void *ptr) = hashids_free_f;
 
-/* shuffle */
+/* shuffle loop step */
+#define hashids_shuffle_step(iter) \
+    if (i == 0) { break; }                                      \
+    if (v == salt_length) { v = 0; }                            \
+    p += salt[v]; j = (salt[v] + v + p) % (iter);               \
+    temp = str[(iter)]; str[(iter)] = str[j]; str[j] = temp;    \
+    --i; ++v;
+
+/* consistent shuffle */
 void
 hashids_shuffle(char *str, size_t str_length, char *salt, size_t salt_length)
 {
-    size_t i, j, v, p;
+    ssize_t i;
+    size_t j, v, p;
     char temp;
 
     if (!salt_length) {
         return;
     }
 
-    for (i = str_length - 1, v = 0, p = 0; i > 0; --i, ++v) {
-        v %= salt_length;
-        p += salt[v];
-        j = (salt[v] + v + p) % i;
-
-        temp = str[i];
-        str[i] = str[j];
-        str[j] = temp;
+    for (i = str_length - 1, v = 0, p = 0; i > 0; /* empty */) {
+        switch (i % 32) {
+            case 31: hashids_shuffle_step(i);
+            case 30: hashids_shuffle_step(i);
+            case 29: hashids_shuffle_step(i);
+            case 28: hashids_shuffle_step(i);
+            case 27: hashids_shuffle_step(i);
+            case 26: hashids_shuffle_step(i);
+            case 25: hashids_shuffle_step(i);
+            case 24: hashids_shuffle_step(i);
+            case 23: hashids_shuffle_step(i);
+            case 22: hashids_shuffle_step(i);
+            case 21: hashids_shuffle_step(i);
+            case 20: hashids_shuffle_step(i);
+            case 19: hashids_shuffle_step(i);
+            case 18: hashids_shuffle_step(i);
+            case 17: hashids_shuffle_step(i);
+            case 16: hashids_shuffle_step(i);
+            case 15: hashids_shuffle_step(i);
+            case 14: hashids_shuffle_step(i);
+            case 13: hashids_shuffle_step(i);
+            case 12: hashids_shuffle_step(i);
+            case 11: hashids_shuffle_step(i);
+            case 10: hashids_shuffle_step(i);
+            case  9: hashids_shuffle_step(i);
+            case  8: hashids_shuffle_step(i);
+            case  7: hashids_shuffle_step(i);
+            case  6: hashids_shuffle_step(i);
+            case  5: hashids_shuffle_step(i);
+            case  4: hashids_shuffle_step(i);
+            case  3: hashids_shuffle_step(i);
+            case  2: hashids_shuffle_step(i);
+            case  1: hashids_shuffle_step(i);
+            case  0: hashids_shuffle_step(i);
+        }
     }
 }
 
