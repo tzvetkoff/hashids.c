@@ -2,10 +2,10 @@
 #define HASHIDS_H 1
 
 /* version constants */
-#define HASHIDS_VERSION "1.0.1"
+#define HASHIDS_VERSION "1.1.1"
 #define HASHIDS_VERSION_MAJOR 1
-#define HASHIDS_VERSION_MINOR 0
-#define HASHIDS_VERSION_PATCH 0
+#define HASHIDS_VERSION_MINOR 1
+#define HASHIDS_VERSION_PATCH 1
 
 /* minimal alphabet length */
 #define HASHIDS_MIN_ALPHABET_LENGTH 16u
