@@ -116,7 +116,7 @@ int
 main(int argc, char **argv)
 {
     hashids_t *hashids;
-    char buffer[256], *error = 0;
+    char buffer[256];
     size_t i, j, result;
     unsigned long long numbers[16];
     struct testcase_t testcase;
@@ -147,20 +147,23 @@ main(int argc, char **argv)
 
             switch (hashids_errno) {
                 case HASHIDS_ERROR_ALLOC:
-                    error = "Hashids: Allocation failed";
+                    failures[j++] = f("#%d: hashids_init3(): "
+                        "memory allocation failed", i + 1);
                     break;
                 case HASHIDS_ERROR_ALPHABET_LENGTH:
-                    error = "Hashids: Alphabet is too short";
+                    failures[j++] = f("#%d: hashids_init3(): "
+                        "alphabet too short", i + 1);
                     break;
                 case HASHIDS_ERROR_ALPHABET_SPACE:
-                    error = "Hashids: Alphabet contains whitespace characters";
+                    failures[j++] = f("#%d: hashids_init3(): "
+                        "alphabet contains whitespace character", i + 1);
                     break;
                 default:
-                    error = "Hashids: Unknown error";
+                    failures[j++] = f("#%d: hashids_init3(): "
+                        "unknown error", i + 1);
                     break;
             }
 
-            failures[j++] = f("#%d: %s", i + 1, error);
             continue;
         }
 
@@ -170,16 +173,14 @@ main(int argc, char **argv)
 
         /* encoding error */
         if (!result) {
-            printf("F");
             failures[j++] = f("#%d: hashids_encode() returned 0", i + 1);
             fail = 1;
         }
 
         /* compare encoded string */
         if (strcmp(buffer, testcase.expected_hash) != 0) {
-            printf("F");
-            failures[j++] = f("#%d: hashids_encode() result \"%s\" does not "
-                "match expected hash \"%s\"", i + 1, buffer,
+            failures[j++] = f("#%d: hashids_encode() returned \"%s\", "
+                "expected \"%s\"", i + 1, buffer,
                 testcase.expected_hash);
             fail = 1;
         }
@@ -189,16 +190,14 @@ main(int argc, char **argv)
 
         /* decoding error */
         if (result != testcase.numbers_count) {
-            printf("F");
-            failures[j++] = f("#%d: hashids_decode() returned %u", i + 1,
-                result);
+            failures[j++] = f("#%d: hashids_decode() returned %u, expected %u",
+                i + 1, result, testcase.numbers_count);
             fail = 1;
         }
 
         /* compare decoded numbers */
         if (memcmp(numbers, testcase.numbers,
                 result * sizeof(unsigned long long))) {
-            printf("F");
             failures[j++] = f("#%d: hashids_decode() decoding error", i + 1);
             fail = 1;
         }
@@ -212,6 +211,7 @@ main(int argc, char **argv)
 
     for (i = 0; i < j; ++i) {
         printf("%s\n", failures[i]);
+        free(failures[i]);
     }
 
     if (j) {
