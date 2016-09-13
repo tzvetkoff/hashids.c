@@ -260,37 +260,19 @@ size_t
 hashids_estimate_encoded_size(hashids_t *hashids,
     size_t numbers_count, unsigned long long *numbers)
 {
-    size_t result_len, i;
-    unsigned long long number;
+    int i, result_len;
 
-    /* start from 1 - the lottery character */
-    result_len = 1;
-
-    for (i = 0; i < numbers_count; ++i) {
-        number = numbers[i];
-
-        /* how long is the hash */
-        do {
-            ++result_len;
-            number /= hashids->alphabet_length;
-        } while (number);
-
-        /* more than 1 number - separator */
-        if (i + 1 < numbers_count) {
-            ++result_len;
+    for (i = 0, result_len = 1; i < numbers_count; ++i) {
+        if (numbers[i] == 0) {
+            result_len += 2;
+        } else if (numbers[i] == 0xFFFFFFFFFFFFFFFFull) {
+            result_len += ceil(log2(numbers[i]) / log2(hashids->alphabet_length)) + 1;
+        } else {
+            result_len += ceil(log2(numbers[i] + 1) / log2(hashids->alphabet_length)) + 1;
         }
     }
 
-    /* minimum length checks */
-    if (result_len++ < hashids->min_hash_length) {
-        if (result_len++ < hashids->min_hash_length) {
-            while (result_len < hashids->min_hash_length) {
-                result_len += hashids->alphabet_length;
-            }
-        }
-    }
-
-    return result_len + 1;
+    return result_len;
 }
 
 /* estimate buffer size (variadic) */

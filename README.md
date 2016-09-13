@@ -144,7 +144,7 @@ size_t bytes_encoded;
 char hash[512];
 unsigned long long numbers[] = {1ull};
 bytes_encoded = hashids_encode(hashids, hash, sizeof(numbers) / sizeof(unsigned long long), numbers);
-/* hash => "NV", bytes_encoded => 2 */
+/* hash => "jR", bytes_encoded => 2 */
 unsigned long long numbers2[] = {1ull, 2ull, 3ull, 4ull, 5ull};
 bytes_encoded = hashids_encode(hashids, hash, sizeof(numbers2) / sizeof(unsigned long long), numbers2);
 /* hash => "ADf9h9i0sQ", bytes_encoded => 10 */
@@ -163,7 +163,7 @@ Example:
 
 ``` c
 bytes_encoded = hashids_encode_v(hashids, hash, 1, 1ull);
-/* hash => "NV", bytes_encoded => 2 */
+/* hash => "jR", bytes_encoded => 2 */
 bytes_encoded = hashids_encode_v(hashids, hash, 5, 1ull, 2ull, 3ull, 4ull, 5ull);
 /* hash => "ADf9h9i0sQ", bytes_encoded => 10 */
 ```
