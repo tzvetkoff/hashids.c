@@ -170,15 +170,21 @@ hashids_init3(const char *salt, size_t min_hash_length, const char *alphabet)
         hashids_errno = HASHIDS_ERROR_ALPHABET_LENGTH;
         return NULL;
     }
-    if (strchr(result->alphabet, ' ')) {
+    if (strchr(result->alphabet, 0x20) || strchr(result->alphabet, 0x09)) {
         hashids_free(result);
         hashids_errno = HASHIDS_ERROR_ALPHABET_SPACE;
         return NULL;
     }
 
     /* copy salt */
-    result->salt = strdup(salt ? salt : HASHIDS_DEFAULT_SALT);
-    result->salt_length = strlen(result->salt);
+    result->salt_length = salt ? strlen(salt) : 0;
+    result->salt = _hashids_alloc(result->salt_length + 1);
+    if (HASHIDS_UNLIKELY(!result->salt)) {
+        hashids_free(result);
+        hashids_errno = HASHIDS_ERROR_ALLOC;
+        return NULL;
+    }
+    strncpy(result->salt, salt, result->salt_length);
 
     /* allocate enough space for separators */
     result->separators = _hashids_alloc((size_t)
@@ -306,6 +312,10 @@ hashids_estimate_encoded_size(hashids_t *hashids,
         } else {
             result_len += ceil(log2(numbers[i] + 1) / log2(hashids->alphabet_length)) + 1;
         }
+    }
+
+    if (result_len <= hashids->min_hash_length) {
+        result_len = hashids->min_hash_length + 1;
     }
 
     return result_len;
