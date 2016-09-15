@@ -10,8 +10,8 @@
 #   define __has_builtin(x) (0)
 #endif
 #if defined(__builtin_expect) || __has_builtin(__builtin_expect)
-#   define HASHIDS_LIKELY(x)       (__builtin_expect(!!(x), 1))
-#   define HASHIDS_UNLIKELY(x)     (__builtin_expect(!!(x), 0))
+#   define HASHIDS_LIKELY(x)        (__builtin_expect(!!(x), 1))
+#   define HASHIDS_UNLIKELY(x)      (__builtin_expect(!!(x), 0))
 #else
 #   define HASHIDS_LIKELY(x)        (x)
 #   define HASHIDS_UNLIKELY(x)      (x)
@@ -187,21 +187,29 @@ hashids_init3(const char *salt, size_t min_hash_length, const char *alphabet)
     strncpy(result->salt, salt, result->salt_length);
 
     /* allocate enough space for separators */
-    result->separators = _hashids_alloc((size_t)
-        (ceil((float)result->alphabet_length / HASHIDS_SEPARATOR_DIVISOR) + 1));
+    len = strlen(HASHIDS_DEFAULT_SEPARATORS);
+    j = (size_t)
+        (ceil((float)result->alphabet_length / HASHIDS_SEPARATOR_DIVISOR) + 1);
+    if (j < len + 1) {
+        j = len + 1;
+    }
+
+    result->separators = _hashids_alloc(j);
     if (HASHIDS_UNLIKELY(!result->separators)) {
         hashids_free(result);
         hashids_errno = HASHIDS_ERROR_ALLOC;
         return NULL;
     }
 
-    /* non-alphabet characters cannot be separators */
+    /* take default separators out of the alphabet */
     for (i = 0, j = 0; i < strlen(HASHIDS_DEFAULT_SEPARATORS); ++i) {
         ch = HASHIDS_DEFAULT_SEPARATORS[i];
+
+        /* check if separator is actually in the used alphabet */
         if ((p = strchr(result->alphabet, ch))) {
             result->separators[j++] = ch;
 
-            /* also remove separators from alphabet */
+            /* remove that separator */
             memmove(p, p + 1,
                 strlen(result->alphabet) - (p - result->alphabet));
         }

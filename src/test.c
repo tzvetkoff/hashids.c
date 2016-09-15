@@ -86,6 +86,10 @@ struct testcase_t testcases[] = {
     {"this is my salt", 0, "cfhistuCFHISTU+-", 1,
         {1337ull}, "+-+-++---++-"},
 
+    {"this is my salt", 0, "abdegjkomnopqrvwxyzABDEGJKLMNOPQRVWXYZ1234567890"
+        "!@#$%^&*()-_=+;:,.<>/?`~[]{}", 1,
+        {1ull}, "V7"},
+
     {"\\7ULC'", 22, "@'l*p9n]);+7>Ar(\\", 1,
         {190126ull}, "9];r(An97\\]]\\()>7>\\)+]"},
 

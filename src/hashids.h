@@ -2,10 +2,10 @@
 #define HASHIDS_H 1
 
 /* version constants */
-#define HASHIDS_VERSION "1.1.1"
+#define HASHIDS_VERSION "1.1.2"
 #define HASHIDS_VERSION_MAJOR 1
 #define HASHIDS_VERSION_MINOR 1
-#define HASHIDS_VERSION_PATCH 1
+#define HASHIDS_VERSION_PATCH 2
 
 /* minimal alphabet length */
 #define HASHIDS_MIN_ALPHABET_LENGTH 16u
@@ -30,10 +30,7 @@
 /* default separators */
 #define HASHIDS_DEFAULT_SEPARATORS "cfhistuCFHISTU"
 
-/* minimal buffer size */
-#define HASHIDS_MIN_BUFFER_SIZE 64u
-
-/* common error codes */
+/* error codes */
 #define HASHIDS_ERROR_OK 0
 #define HASHIDS_ERROR_ALLOC -1
 #define HASHIDS_ERROR_ALPHABET_LENGTH -2

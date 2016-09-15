@@ -1,7 +1,7 @@
 # Define the package version numbers, bug reporting link, project homepage.
 m4_define([HASHIDS_VERSION_MAJOR_], [1])
 m4_define([HASHIDS_VERSION_MINOR_], [1])
-m4_define([HASHIDS_VERSION_PATCH_], [1])
+m4_define([HASHIDS_VERSION_PATCH_], [2])
 m4_define([HASHIDS_VERSION_STRING_], [HASHIDS_VERSION_MAJOR_.HASHIDS_VERSION_MINOR_.HASHIDS_VERSION_PATCH_])
 m4_define([HASHIDS_BUGREPORT_URL_], [https://github.com/tzvetkoff/hashids.c/issues])
 m4_define([HASHIDS_PROJECT_URL_], [https://github.com/tzvetkoff/hashids.c])
