@@ -28,6 +28,19 @@ LT_INIT()
 AC_CHECK_LIB([m], [ceil], [LIBM="-lm"])
 AC_SUBST([LIBM])
 
+# Debug.
+AC_ARG_ENABLE([debug], AS_HELP_STRING([--enable-debug], [Enable debugging @<:@default=no@:>@.]), [
+  case "${enableval}" in
+    yes) HASHIDS_DEBUG="1"; CFLAGS="${CFLAGS} -g -fsanitize=address -fno-omit-frame-pointer";;
+    no)  HASHIDS_DEBUG="0";;
+    *)   AC_MSG_ERROR(["bad value ${enableval} for feature --enable-debug"]);;
+  esac
+], [
+  HASHIDS_DEBUG="0"
+])
+AM_CONDITIONAL([DEBUG], [test "x${HASHIDS_DEBUG}" = "x1"])
+AC_DEFINE_UNQUOTED([DEBUG], [${HASHIDS_DEBUG}], [Debug mode.])
+
 # Makefiles.
 AC_CONFIG_FILES([Makefile src/Makefile])
 
