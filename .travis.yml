@@ -5,6 +5,7 @@ language: c
 compiler:
   - gcc
   - clang
+install: sudo apt-get install valgrind -y
 before_script:
   - mkdir -p m4
   - ./bootstrap
@@ -12,3 +13,4 @@ script:
   - ./configure --enable-debug
   - make
   - make check
+  - valgrind --leak-check=full src/test
