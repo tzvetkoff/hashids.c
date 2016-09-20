@@ -369,9 +369,9 @@ hashids_encode(hashids_t *hashids, char *buffer,
         return 0;
     }
 
-    size_t i, j, result_len, guard_index, half_length_floor, half_length_ceil;
+    size_t i, j, result_len, guard_index, half_length_ceil, half_length_floor;
     unsigned long long number, number_copy, numbers_hash;
-    int p_max, excess;
+    int p_max;
     char lottery, ch, temp_ch, *p, *buffer_end, *buffer_temp;
 
     /* return an estimation if no buffer */
@@ -449,44 +449,60 @@ hashids_encode(hashids_t *hashids, char *buffer,
     /* intermediate string length */
     result_len = buffer_end - buffer;
 
-    /* add guards before start padding with alphabet */
     if (result_len < hashids->min_hash_length) {
+        /* add a guard before the encoded numbers */
         guard_index = (numbers_hash + buffer[0]) % hashids->guards_count;
         memmove(buffer + 1, buffer, result_len);
         buffer[0] = hashids->guards[guard_index];
         ++result_len;
 
         if (result_len < hashids->min_hash_length) {
+            /* add a guard after the encoded numbers */
             guard_index = (numbers_hash + buffer[2]) % hashids->guards_count;
             buffer[result_len] = hashids->guards[guard_index];
             ++result_len;
 
             /* pad with half alphabet before and after */
-            half_length_floor = floor((float)hashids->alphabet_length / 2);
             half_length_ceil = ceil((float)hashids->alphabet_length / 2);
+            half_length_floor = floor((float)hashids->alphabet_length / 2);
 
             /* pad, pad, pad */
             while (result_len < hashids->min_hash_length) {
+                /* shuffle the alphabet */
                 strncpy(hashids->alphabet_copy_2, hashids->alphabet_copy_1,
                     hashids->alphabet_length);
                 hashids_shuffle(hashids->alphabet_copy_1,
                     hashids->alphabet_length, hashids->alphabet_copy_2,
                     hashids->alphabet_length);
 
-                memmove(buffer + half_length_ceil, buffer, result_len);
-                memmove(buffer, hashids->alphabet_copy_1 + half_length_floor,
-                    half_length_ceil);
-                memmove(buffer + result_len + half_length_ceil,
-                    hashids->alphabet_copy_1, half_length_floor);
+                /* left pad from the end of the alphabet */
+                i = ceil((float)(hashids->min_hash_length - result_len) / 2);
+                /* right pad from the beginning */
+                j = floor((float)(hashids->min_hash_length - result_len) / 2);
 
-                result_len += hashids->alphabet_length;
-                excess = result_len - hashids->min_hash_length;
-
-                if (excess > 0) {
-                    memmove(buffer, buffer + excess / 2,
-                        hashids->min_hash_length);
-                    result_len = hashids->min_hash_length;
+                /* check bounds */
+                if (i > half_length_ceil) {
+                    i = half_length_ceil;
                 }
+                if (j > half_length_floor) {
+                    j = half_length_floor;
+                }
+
+                /* edge case - only pad left */
+                if (i == 1 && j == i) {
+                    i = 2; j = 0;
+                }
+
+                /* move the current result to "center" */
+                memmove(buffer + i, buffer, result_len);
+                /* pad left */
+                memmove(buffer,
+                    hashids->alphabet_copy_1 + hashids->alphabet_length - i, i);
+                /* pad right */
+                memmove(buffer + i + result_len, hashids->alphabet_copy_1, j);
+
+                /* increment result_len */
+                result_len += i + j;
             }
         }
     }

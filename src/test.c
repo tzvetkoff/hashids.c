@@ -90,8 +90,34 @@ struct testcase_t testcases[] = {
         "!@#$%^&*()-_=+;:,.<>/?`~[]{}", 1,
         {1ull}, "V7"},
 
+    {"", 22, "abdegjk0123456789", 1,
+        {190126ull}, "070683k2j3771430j49157"},
     {"\\7ULC'", 22, "@'l*p9n]);+7>Ar(\\", 1,
         {190126ull}, "9];r(An97\\]]\\()>7>\\)+]"},
+
+    {"", 1337, HASHIDS_DEFAULT_ALPHABET, 1,
+        {1337ull},
+        "lzALO5xqNEXWL8DOJ0wPk21RmoyQKMYlZ38Gzr95O6jyokL7BVXx8J2oQ17YvqAw"
+        "56KLpMNm8PKwXlkojOA01ZBVy6YgpDvRV2E3OxnPgA6orY4ZG1QzBDZVA1mLP5Ng"
+        "YG3Q2WqKO6rmDgB5x3lZkMLQ2EVpjwnRJlN6vyOEnxpZRrXKMAoG52YOl8g4D6KX"
+        "7x9ARmyzv1krGAzNWwQyPB89Lk2gvjnqoOB6Vn1oGqzYkl7O0p23KQmEpZxMGNPy"
+        "g1W5L7Bz3vrqwYq8gPWR4Xk0wyKMmL6AvJ7Q1oD2EZVpPYM4WRN0GgK9XlNJvAzX"
+        "kw079qLQZ8WxnrRKVpL5ND0l91vMgE7JAZOxP6ERPGw4xDqMklnymZ9VKQp331QE"
+        "RDYzALx5PlwgKk8p4r9qL2KQ86gJ7RDBnxwMr3ZGmQVMGwAvEK6N7X5yDP4pJnP4"
+        "o3RKxDXZyBNvrJmjWqLwWm1VER9X5B78G6ZNkpL4O2EknRx4qMK9NZ7j53WyOzQg"
+        "qrW1YMB5AnkRpO37DV2jG6YLmBQ6J2E70wnAPDZXOplxj349lD0YZLngkOG2Ro7z"
+        "yJ6PqJ30oKGn9OgNzRyW25m77pnOg298EvljGD1YWRVrk32yp8z6nWqx0LXVE9jP"
+        "K5DQEvX37WpmMkqno2j50r4KGRb4Z2eBLZQxgy91DlPzONVwA68JYYRkM7o3OJwB"
+        "ZNlAm41rgGv6XNzwJy0AB4Mq5LoxZPQKmMjEAkYVZXDw8rxlQpv41LB5pQqvNBmK"
+        "w1rMAXV8EP6xWy1RkKzVMjrG3g8vN9oW45qmwvgZxoLXyPJQKNzE0498lA2wX8Vr"
+        "0mpvP6LJ1GoBYlDYzDnyMwP0rQj3KgvlJAxoq2Mg7Q9Op6G8AY5nV01Elkz8Bolq"
+        "2g0YOW1rxj9zR3kLZj45Wmo1VAE0XvkzPyYNOpl6M0XyOVGjN7nBoq2Zvm9WJ50j"
+        "vXBOzWo2Lg1JNr7AY68ryk8o4X2jQW3GKqzYnwBmRBj4lpDYyVm1MP5gGo2EO63v"
+        "6OqJy8nzAwLBxmjk7r35Q35zolOjx9VnrpBG2YNED1ZXl6KE2RAnoDmj9O0V4JQ8"
+        "kRM9gNX48v5LjyrZwJWPxDA4KV3pZX0JRD5Ex17lYrm6MWE2jJPpw3qBnGZLQ5NV"
+        "M0ogDkzWj0Y84QPmB3L7qw1V9Yo49PW6XAqy807z1NJOKvG4vp780lEoRryjXM9x"
+        "wzkJnB79DWXLlNp0jk8mJMK5qyw4QMLGNrJRvWx792Ezqm35nVEyPz9RGl0jrgW3"
+        "BnOZkD4pXRxnmvN0QWP21DEwgq4JABlZ59MzV74nKGAjp6rgvY3p8ywGk"},
 
     {NULL, 0, NULL, 0, {0ull}, NULL}
 };
@@ -120,7 +146,7 @@ int
 main(int argc, char **argv)
 {
     hashids_t *hashids;
-    char buffer[256];
+    char *buffer;
     size_t i, j, result;
     unsigned long long numbers[16];
     struct testcase_t testcase;
@@ -147,28 +173,38 @@ main(int argc, char **argv)
 
         /* error upon initialization */
         if (!hashids) {
-            printf("F");
+            fail = 1;
 
             switch (hashids_errno) {
                 case HASHIDS_ERROR_ALLOC:
-                    failures[j++] = f("#%d: hashids_init3(): "
+                    failures[j++] = f("#%04d: hashids_init3(): "
                         "memory allocation failed", i + 1);
                     break;
                 case HASHIDS_ERROR_ALPHABET_LENGTH:
-                    failures[j++] = f("#%d: hashids_init3(): "
+                    failures[j++] = f("#%04d: hashids_init3(): "
                         "alphabet too short", i + 1);
                     break;
                 case HASHIDS_ERROR_ALPHABET_SPACE:
-                    failures[j++] = f("#%d: hashids_init3(): "
+                    failures[j++] = f("#%04d: hashids_init3(): "
                         "alphabet contains whitespace character", i + 1);
                     break;
                 default:
-                    failures[j++] = f("#%d: hashids_init3(): "
+                    failures[j++] = f("#%04d: hashids_init3(): "
                         "unknown error", i + 1);
                     break;
             }
 
-            continue;
+            goto test_end;
+        }
+
+        /* allocate buffer */
+        buffer = calloc(hashids_estimate_encoded_size(hashids,
+            testcase.numbers_count, testcase.numbers), 1);
+
+        if (!buffer) {
+            fail = 1;
+            failures[j++] = f("#%04d: cannot allocate buffer", i + 1);
+            goto test_end;
         }
 
         /* encode */
@@ -177,16 +213,18 @@ main(int argc, char **argv)
 
         /* encoding error */
         if (!result) {
-            failures[j++] = f("#%d: hashids_encode() returned 0", i + 1);
             fail = 1;
+            failures[j++] = f("#%04d: hashids_encode() returned 0", i + 1);
+            goto test_end;
         }
 
         /* compare encoded string */
         if (strcmp(buffer, testcase.expected_hash) != 0) {
-            failures[j++] = f("#%d: hashids_encode() returned \"%s\", "
-                "expected \"%s\"", i + 1, buffer,
-                testcase.expected_hash);
             fail = 1;
+            failures[j++] = f("#%04d: hashids_encode() returned \"%s\"\n"
+                "                        expected \"%s\"", i + 1, buffer,
+                testcase.expected_hash);
+            goto test_end;
         }
 
         /* decode */
@@ -194,21 +232,32 @@ main(int argc, char **argv)
 
         /* decoding error */
         if (result != testcase.numbers_count) {
-            failures[j++] = f("#%d: hashids_decode() returned %u, expected %u",
-                i + 1, result, testcase.numbers_count);
             fail = 1;
+            failures[j++] = f("#%04d: hashids_decode() returned %u\n"
+                "                        expected %u", i + 1, result,
+                testcase.numbers_count);
+            goto test_end;
         }
 
         /* compare decoded numbers */
         if (memcmp(numbers, testcase.numbers,
                 result * sizeof(unsigned long long))) {
-            failures[j++] = f("#%d: hashids_decode() decoding error", i + 1);
             fail = 1;
+            failures[j++] = f("#%04d: hashids_decode() decoding error", i + 1);
+            goto test_end;
         }
 
+test_end:
         fputc(fail ? 'F' : '.', stdout);
 
-        hashids_free(hashids);
+        if (hashids) {
+            hashids_free(hashids);
+            hashids = NULL;
+        }
+        if (buffer) {
+            free(buffer);
+            buffer = NULL;
+        }
     }
 
     printf("\n\n");
