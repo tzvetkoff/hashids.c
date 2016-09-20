@@ -1,0 +1,14 @@
+# Use new trusty images, should yield newer compilers and packages
+sudo: required
+dist: trusty
+language: c
+compiler:
+  - gcc
+  - clang
+before_script:
+  - mkdir -p m4
+  - ./bootstrap
+script:
+  - ./configure --enable-debug
+  - make
+  - make check
