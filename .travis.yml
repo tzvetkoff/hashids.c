@@ -1,6 +1,7 @@
 # Use new trusty images, should yield newer compilers and packages
 sudo: required
 dist: trusty
+cache: ccache
 language: c
 compiler:
   - gcc
