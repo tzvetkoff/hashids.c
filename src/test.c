@@ -50,7 +50,7 @@ struct testcase_t testcases[] = {
         {99ull, 25ull}, "JOMh1"},
 
     {"", 0, "!\"#%&',-/0123456789:;<=>ABCDEFGHIJKLMNOPQRSTUVWXYZ_`abcdefghijklmnopqrstuvwxyz~", 4,
-        {683ull, 94108ull, 123ull, 5ull}, "_nJUNTVU3"},
+        {2839ull, 12ull, 32ull, 5ull}, "_nJUNTVU3"},
     {"", 0, "!\"#%&',-/0123456789:;<=>ABCDEFGHIJKLMNOPQRSTUVWXYZ_`abcdefghijklmnopqrstuvwxyz~", 3,
         {1ull, 2ull, 3ull}, "7xfYh2"},
     {"", 0, "!\"#%&',-/0123456789:;<=>ABCDEFGHIJKLMNOPQRSTUVWXYZ_`abcdefghijklmnopqrstuvwxyz~", 1,
