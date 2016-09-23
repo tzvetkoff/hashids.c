@@ -214,8 +214,8 @@ f(const char *fmt, ...)
 int
 main(int argc, char **argv)
 {
-    hashids_t *hashids;
-    char *buffer;
+    hashids_t *hashids = NULL;
+    char *buffer = NULL;
     size_t i, j, result;
     unsigned long long numbers[16];
     struct testcase_t testcase;
