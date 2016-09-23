@@ -214,15 +214,15 @@ f(const char *fmt, ...)
 int
 main(int argc, char **argv)
 {
-    hashids_t *hashids = NULL;
-    char *buffer = NULL;
-    size_t i, j, result;
-    unsigned long long numbers[16];
-    struct testcase_t testcase;
-    int fail;
-
+    size_t i, j;
     /* walk test cases */
     for (i = 0, j = 0;; ++i) {
+        hashids_t *hashids = NULL;
+        char *buffer = NULL;
+        size_t result;
+        unsigned long long numbers[16];
+        struct testcase_t testcase;
+        int fail;
         fail = 0;
 
         if (i && i % 72 == 0) {
@@ -327,11 +327,9 @@ test_end:
 
         if (hashids) {
             hashids_free(hashids);
-            hashids = NULL;
         }
         if (buffer) {
             free(buffer);
-            buffer = NULL;
         }
     }
 
