@@ -289,7 +289,7 @@ main(int argc, char **argv)
 
         if (result < testcase.min_hash_length) {
           fail = 1;
-          failures[j++] = f("#%04d: hashids_encode() returned %d. Mininal hash length is %d", i + 1, result, testcase.min_hash_length);
+          failures[j++] = f("#%04d: hashids_encode() returned %u. Minimal hash length is %u", i + 1, result, testcase.min_hash_length);
           goto test_end;
         }
 
