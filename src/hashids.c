@@ -310,7 +310,7 @@ size_t
 hashids_estimate_encoded_size(hashids_t *hashids,
     size_t numbers_count, unsigned long long *numbers)
 {
-    int i, result_len;
+    size_t i, result_len;
 
     for (i = 0, result_len = 1; i < numbers_count; ++i) {
         if (numbers[i] == 0) {
