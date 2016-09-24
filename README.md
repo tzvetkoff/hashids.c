@@ -54,7 +54,7 @@ hashids_free(hashids_t *hashids);
 ```
 
 The 'destructor'. This function disposes what you can allocate with the following 3 functions.
-You'll definetely need to call this function when you're done (un)hashing.
+You'll definitely need to call this function when you're done (un)hashing.
 
 #### hashids_init3
 
@@ -92,6 +92,33 @@ hashids_init(const char *salt);
 The same as `hashids_init2` but using `0` as `min_hash_length`.
 If you pass `NULL` for `salt` the `HASHIDS_DEFAULT_SALT` will be used (currently `""`).
 
+#### hashids_arena_free
+
+``` c
+void
+hashids_arena_free(hashids_arena_t *hashids_arena);
+```
+
+The arena 'destructor'. This function disposes of an allocated memory arena.
+
+#### hashids_arena_init
+
+``` c
+hashids_arena_t *
+hashids_arena_init(hashids_t *hashids);
+```
+
+The memory arena initializer you'll most often use. `hashids_arena_init` estimates the initial buffer size based on the minimum hash length of the `hashids` instance.
+
+#### hashids_new_arena_init
+
+``` c
+hashids_arena_t *
+hashids_new_arena_init(size_t buffer_size, size_t numbers_count);
+```
+
+Initializes a memory arena with a given buffer size and numbers count.
+
 #### hashids_estimate_encoded_size
 
 ``` c
@@ -109,6 +136,16 @@ size_t bytes_needed;
 bytes_needed = hashids_estimate_encoded_size(hashids, sizeof(numbers) / sizeof(unsigned long long), numbers);
 /* bytes_needed => 12 */
 ```
+
+#### hashids_estimate_encoded_size_arena
+
+``` c
+size_t
+hashids_estimate_encoded_size_arena(hashids_t *hashids, hashids_arena_t *hashids_arena,
+    size_t numbers_count, unsigned long long *numbers);
+```
+
+Same as `hashids_estimate_encoded_size` but also resizes the buffer in the provided memory arena if required.
 
 #### hashids_estimate_encoded_size_v
 
@@ -202,6 +239,15 @@ size_t numbers_count = hashids_numbers_count(hashids, "ADf9h9i0sQ");
 /* numbers_count => 5 */
 ```
 
+#### hashids_numbers_count_arena
+
+``` c
+size_t
+hashids_numbers_count_arena(hashids_t *hashids, hashids_arena_t *hashids_arena, char *str);
+```
+
+Same as `hashids_numbers_count`  but also resizes the numbers array in the provided memory arena if required.
+
 #### hashids_decode
 
 ``` c
@@ -274,8 +320,9 @@ Since the `hashids_init*` (and some of the `*_v`) functions are memory-dependent
 If you roll your own allocator, or for some reason you don't like external libraries calling `malloc`/`calloc`, you can redefine the memory handling functions:
 
 ``` c
-void *(*_hashids_alloc)(size_t size)    = hashids_alloc_f;
-void (*_hashids_free)(void *ptr)        = hashids_free_f;
+void *(*_hashids_alloc)(size_t size)                 = hashids_alloc_f;
+void *(*_hashids_realloc)(void *ptr, size_t size)    = _hashids_realloc_f;
+void (*_hashids_free)(void *ptr)                     = hashids_free_f;
 ```
 
 Please note that the `hashids_init*` functions (most likely) rely on zero-initialized memory.
