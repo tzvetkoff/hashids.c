@@ -65,6 +65,16 @@ struct hashids_s {
 };
 typedef struct hashids_s hashids_t;
 
+struct hashids_arena_s {
+    char *buffer;
+    size_t buffer_size;
+
+    unsigned long long *numbers;
+    size_t numbers_count;
+};
+
+typedef struct hashids_arena_s hashids_arena_t;
+
 /* exported function definitions */
 void
 hashids_shuffle(char *str, size_t str_length, char *salt, size_t salt_length);
@@ -82,9 +92,23 @@ hashids_init2(const char *salt, size_t min_hash_length);
 hashids_t *
 hashids_init(const char *salt);
 
+void
+hashids_arena_free(hashids_arena_t *hashids_arena);
+
+hashids_arena_t *
+hashids_arena_init(hashids_t *hashids);
+
+hashids_arena_t *
+hashids_new_arena_init(size_t buffer_size, size_t numbers_count);
+
 size_t
 hashids_estimate_encoded_size(hashids_t *hashids,
     size_t numbers_count, unsigned long long *numbers);
+
+size_t
+hashids_estimate_encoded_size_arena(hashids_t *hashids, hashids_arena_t *hashids_arena,
+    size_t numbers_count, unsigned long long *numbers);
+
 
 size_t
 hashids_estimate_encoded_size_v(hashids_t *hashids,
@@ -104,6 +128,9 @@ hashids_encode_one(hashids_t *hashids, char *buffer,
 
 size_t
 hashids_numbers_count(hashids_t *hashids, char *str);
+
+size_t
+hashids_numbers_count_arena(hashids_t *hashids, hashids_arena_t *hashids_arena, char *str);
 
 size_t
 hashids_decode(hashids_t *hashids, char *str,
