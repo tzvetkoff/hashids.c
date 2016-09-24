@@ -27,6 +27,12 @@ hashids_alloc_f(size_t size)
     return calloc(size, 1);
 }
 
+static void *
+hashids_realloc_f(void *ptr, size_t size)
+{
+    return realloc(ptr, size);
+}
+
 static void
 hashids_free_f(void *ptr)
 {
@@ -34,6 +40,7 @@ hashids_free_f(void *ptr)
 }
 
 void *(*_hashids_alloc)(size_t size) = hashids_alloc_f;
+void *(*_hashids_realloc)(void *ptr, size_t size) = hashids_realloc_f;
 void (*_hashids_free)(void *ptr) = hashids_free_f;
 
 /* shuffle loop step */
@@ -305,6 +312,78 @@ hashids_init(const char *salt)
     return hashids_init2(salt, HASHIDS_DEFAULT_MIN_HASH_LENGTH);
 }
 
+/* frees a hashids arena */
+void hashids_arena_free(hashids_arena_t *hashids_arena) {
+  if (hashids_arena) {
+    if (hashids_arena->buffer) {
+      _hashids_free(hashids_arena->buffer);
+    }
+
+    if (hashids_arena->numbers) {
+      _hashids_free(hashids_arena->numbers);
+    }
+
+    _hashids_free(hashids_arena);
+  }
+}
+
+/* init an arena */
+hashids_arena_t *hashids_new_arena_init(size_t buffer_size, size_t numbers_count) {
+  if (HASHIDS_UNLIKELY(buffer_size == 0 || numbers_count == 0)) {
+    hashids_errno = HASHIDS_ERROR_ALLOC;
+    return NULL;
+  }
+  hashids_arena_t *result;
+  hashids_errno = HASHIDS_ERROR_OK;
+
+  /* allocate the structure */
+  result = _hashids_alloc(sizeof(hashids_arena_t));
+  if (HASHIDS_UNLIKELY(!result)) {
+      hashids_errno = HASHIDS_ERROR_ALLOC;
+      return NULL;
+  }
+
+  result->buffer = _hashids_alloc(buffer_size);
+
+  if (HASHIDS_UNLIKELY(!result->buffer)) {
+    hashids_errno = HASHIDS_ERROR_ALLOC;
+    hashids_arena_free(result);
+    return NULL;
+  }
+
+  result->buffer_size = buffer_size;
+
+  result->numbers = _hashids_alloc(numbers_count * sizeof(unsigned long long));
+
+  if (HASHIDS_UNLIKELY(!result->numbers)) {
+    hashids_errno = HASHIDS_ERROR_ALLOC;
+    hashids_arena_free(result);
+    return NULL;
+  }
+
+  result->numbers_count = numbers_count;
+
+  return result;
+}
+
+/* init an arena for a specific hashids instance */
+hashids_arena_t *hashids_arena_init(hashids_t *hashids) {
+  if (HASHIDS_UNLIKELY(!hashids)) {
+    hashids_errno = HASHIDS_ERROR_ALLOC;
+    return NULL;
+  }
+
+  size_t minimal_buffer_size;
+  if (hashids->min_hash_length > 0) {
+    minimal_buffer_size = hashids->min_hash_length + 1;
+  }
+  else {
+    minimal_buffer_size = 32;
+  }
+
+  return hashids_new_arena_init(minimal_buffer_size, 16);
+}
+
 /* estimate buffer size (generic) */
 size_t
 hashids_estimate_encoded_size(hashids_t *hashids,
@@ -327,6 +406,23 @@ hashids_estimate_encoded_size(hashids_t *hashids,
     }
 
     return result_len;
+}
+
+/* estimate buffer size and realloc the arena in case it's too small */
+size_t
+hashids_estimate_encoded_size_arena(hashids_t *hashids, hashids_arena_t *hashids_arena,
+    size_t numbers_count, unsigned long long *numbers) {
+    size_t estimated_encoded_size = hashids_estimate_encoded_size(hashids, numbers_count, numbers);
+    if (hashids_arena->buffer_size < estimated_encoded_size) {
+      hashids_arena->buffer = _hashids_realloc(hashids_arena->buffer, estimated_encoded_size);
+      if (HASHIDS_UNLIKELY(!hashids_arena->buffer)) {
+          hashids_errno = HASHIDS_ERROR_ALLOC;
+          return 0;
+      }
+      hashids_arena->buffer_size = estimated_encoded_size;
+    }
+
+    return estimated_encoded_size;
 }
 
 /* estimate buffer size (variadic) */
@@ -589,6 +685,20 @@ hashids_numbers_count(hashids_t *hashids, char *str)
 
     /* account for the last number */
     return numbers_count + 1;
+}
+
+size_t
+hashids_numbers_count_arena(hashids_t *hashids, hashids_arena_t *hashids_arena, char *str) {
+  size_t numbers_count = hashids_numbers_count(hashids, str);
+  if (hashids_arena->numbers_count < numbers_count) {
+    hashids_arena->numbers = _hashids_realloc(hashids_arena->numbers, numbers_count * sizeof(unsigned long long));
+    if (HASHIDS_UNLIKELY(!hashids_arena->buffer)) {
+        hashids_errno = HASHIDS_ERROR_ALLOC;
+        return 0;
+    }
+    hashids_arena->numbers_count = numbers_count;
+  }
+  return numbers_count;
 }
 
 /* decode */

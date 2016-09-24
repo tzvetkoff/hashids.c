@@ -146,11 +146,18 @@ int
 main(int argc, char **argv)
 {
     hashids_t *hashids;
-    char *buffer;
+    hashids_arena_t *hashids_arena = NULL;
+    hashids_arena_t *hashids_global_arena = hashids_new_arena_init(1, 1); // Too small on purpose
+    char *buffer = NULL;
     size_t i, j, result;
     unsigned long long numbers[16];
     struct testcase_t testcase;
     int fail;
+
+    if (!hashids_global_arena) {
+      printf("Could not allocate global arena. Exiting...");
+      return 1;
+    }
 
     /* walk test cases */
     for (i = 0, j = 0;; ++i) {
@@ -197,6 +204,15 @@ main(int argc, char **argv)
             goto test_end;
         }
 
+        hashids_arena = hashids_arena_init(hashids);
+
+        if (!hashids_arena) {
+          fail = 1;
+          failures[j++] = f("#%04d: hashids_arena_init(): "
+              "memory allocation failed", i + 1);
+          goto test_end;
+        }
+
         /* allocate buffer */
         buffer = calloc(hashids_estimate_encoded_size(hashids,
             testcase.numbers_count, testcase.numbers), 1);
@@ -227,6 +243,50 @@ main(int argc, char **argv)
             goto test_end;
         }
 
+        /* encode with an arena */
+        hashids_estimate_encoded_size_arena(hashids, hashids_arena, testcase.numbers_count,
+            testcase.numbers);
+        result = hashids_encode(hashids, hashids_arena->buffer, testcase.numbers_count,
+            testcase.numbers);
+
+        /* encoding error */
+        if (!result) {
+            fail = 1;
+            failures[j++] = f("#%04d: hashids_encode() using an arena returned 0", i + 1);
+            goto test_end;
+        }
+
+        /* compare encoded string */
+        if (strcmp(hashids_arena->buffer, testcase.expected_hash) != 0) {
+            fail = 1;
+            failures[j++] = f("#%04d: hashids_encode() using an arena returned \"%s\"\n"
+                "                        expected \"%s\"", i + 1, buffer,
+                testcase.expected_hash);
+            goto test_end;
+        }
+
+        /* encode with a global arena */
+        hashids_estimate_encoded_size_arena(hashids, hashids_global_arena, testcase.numbers_count,
+            testcase.numbers);
+        result = hashids_encode(hashids, hashids_global_arena->buffer, testcase.numbers_count,
+            testcase.numbers);
+
+        /* encoding error */
+        if (!result) {
+            fail = 1;
+            failures[j++] = f("#%04d: hashids_encode() using a global arena returned 0", i + 1);
+            goto test_end;
+        }
+
+        /* compare encoded string */
+        if (strcmp(hashids_global_arena->buffer, testcase.expected_hash) != 0) {
+            fail = 1;
+            failures[j++] = f("#%04d: hashids_encode() using a global arena returned \"%s\"\n"
+                "                        expected \"%s\"", i + 1, buffer,
+                testcase.expected_hash);
+            goto test_end;
+        }
+
         /* decode */
         result = hashids_decode(hashids, buffer, numbers);
 
@@ -247,6 +307,48 @@ main(int argc, char **argv)
             goto test_end;
         }
 
+        /* decode using an arena */
+        hashids_numbers_count_arena(hashids, hashids_arena, buffer);
+        result = hashids_decode(hashids, buffer, hashids_arena->numbers);
+
+        /* decoding error */
+        if (result != testcase.numbers_count) {
+            fail = 1;
+            failures[j++] = f("#%04d: hashids_decode() using an arena returned %u\n"
+                "                        expected %u", i + 1, result,
+                testcase.numbers_count);
+            goto test_end;
+        }
+
+        /* compare decoded numbers */
+        if (memcmp(hashids_arena->numbers, testcase.numbers,
+                result * sizeof(unsigned long long))) {
+            fail = 1;
+            failures[j++] = f("#%04d: hashids_decode() using an arena decoding error", i + 1);
+            goto test_end;
+        }
+
+        /* decode using a global arena */
+        hashids_numbers_count_arena(hashids, hashids_global_arena, buffer);
+        result = hashids_decode(hashids, buffer, hashids_global_arena->numbers);
+
+        /* decoding error */
+        if (result != testcase.numbers_count) {
+            fail = 1;
+            failures[j++] = f("#%04d: hashids_decode() using a global arena returned %u\n"
+                "                        expected %u", i + 1, result,
+                testcase.numbers_count);
+            goto test_end;
+        }
+
+        /* compare decoded numbers */
+        if (memcmp(hashids_global_arena->numbers, testcase.numbers,
+                result * sizeof(unsigned long long))) {
+            fail = 1;
+            failures[j++] = f("#%04d: hashids_decode() using a global arena decoding error", i + 1);
+            goto test_end;
+        }
+
 test_end:
         fputc(fail ? 'F' : '.', stdout);
 
@@ -254,11 +356,17 @@ test_end:
             hashids_free(hashids);
             hashids = NULL;
         }
+        if (hashids_arena) {
+          hashids_arena_free(hashids_arena);
+          hashids_arena = NULL;
+        }
         if (buffer) {
             free(buffer);
             buffer = NULL;
         }
     }
+
+  hashids_arena_free(hashids_global_arena);
 
     printf("\n\n");
 
@@ -271,7 +379,7 @@ test_end:
         printf("\n");
     }
 
-    printf("%lu samples, %lu failures\n", lengthof(testcases) - 1, j);
+    printf("%lu samples, %lu failures\n", lengthof(testcases), j);
 
     return j ? EXIT_FAILURE : EXIT_SUCCESS;
 }
