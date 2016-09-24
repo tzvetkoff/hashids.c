@@ -11,5 +11,5 @@ before_script:
   - ./bootstrap
 script:
   - ./configure --enable-debug
-  - make
+  - make -j2
   - make check
