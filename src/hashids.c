@@ -357,7 +357,7 @@ hashids_estimate_encoded_size(hashids_t *hashids,
         result_len = hashids->min_hash_length + 1;
     }
 
-    return result_len;
+    return result_len + 1;
 }
 
 /* estimate buffer size (variadic) */
