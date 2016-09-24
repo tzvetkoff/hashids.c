@@ -24,8 +24,7 @@ make
 ## Usage
 
 The C usage differs marginally than [JavaScript's](http://hashids.org/javascript/) or [Ruby's](http://hashids.org/ruby/) in the matter that nothing is done (automagically) for you.
-You'll have to manually allocate and free all memory you need for encoding/decoding.
-The library itself will only allocate the `hashids_t` structure (the _handle_) on its own.
+You'll have to use the hashids memory arena API or manually allocate and free all memory you need for encoding/decoding.
 If you want to roll your own allocator, [look here](#memory-allocation).
 
 ### API
@@ -110,6 +109,12 @@ hashids_arena_init(hashids_t *hashids);
 
 The memory arena initializer you'll most often use. `hashids_arena_init` estimates the initial buffer size based on the minimum hash length of the `hashids` instance.
 
+Example:
+
+``` c
+hashids_arena_t *hashids_arena = hashids_arena_init(hashids);
+```
+
 #### hashids_new_arena_init
 
 ``` c
@@ -118,6 +123,12 @@ hashids_new_arena_init(size_t buffer_size, size_t numbers_count);
 ```
 
 Initializes a memory arena with a given buffer size and numbers count.
+
+Example:
+
+``` c
+hashids_arena_t *hashids_arena = hashids_new_arena_init(32, 16);
+```
 
 #### hashids_estimate_encoded_size
 
@@ -146,6 +157,15 @@ hashids_estimate_encoded_size_arena(hashids_t *hashids, hashids_arena_t *hashids
 ```
 
 Same as `hashids_estimate_encoded_size` but also resizes the buffer in the provided memory arena if required.
+
+Example:
+
+``` c
+hashids_arena_t *hashids_arena = hashids_new_arena_init(10, 5);
+unsigned long long numbers[] = {1ull, 2ull, 3ull, 4ull, 5ull};
+size_t bytes_needed;
+bytes_needed = hashids_estimate_encoded_size(hashids, sizeof(numbers) / sizeof(unsigned long long), numbers);
+/* the hashids_arena->buffer now is now resized to contain 12 characters instead of 10. */
 
 #### hashids_estimate_encoded_size_v
 
@@ -247,6 +267,14 @@ hashids_numbers_count_arena(hashids_t *hashids, hashids_arena_t *hashids_arena, 
 ```
 
 Same as `hashids_numbers_count`  but also resizes the numbers array in the provided memory arena if required.
+
+Example:
+
+``` c
+hashids_arena_t *hashids_arena = hashids_new_arena_init(10, 4);
+size_t numbers_count = hashids_numbers_count_arena(hashids, "ADf9h9i0sQ");
+/* the hashids_arena->numbers array now is now resized to contain 5 unsigned long long integers instead of 4. */
+```
 
 #### hashids_decode
 
