@@ -488,9 +488,9 @@ hashids_encode(hashids_t *hashids, char *buffer,
                     j = half_length_floor;
                 }
 
-                /* edge case - only pad left */
-                if (i == 1 && j == i) {
-                    i = 2; j = 0;
+                /* handle excessively excessive excess */
+                if ((i + j) % 2 == 0 && hashids->alphabet_length % 2 == 1) {
+                    ++i; --j;
                 }
 
                 /* move the current result to "center" */

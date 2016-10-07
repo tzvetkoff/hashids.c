@@ -49,13 +49,17 @@ struct testcase_t testcases[] = {
     {"Arbitrary string", 0, HASHIDS_DEFAULT_ALPHABET, 2,
         {99ull, 25ull}, "JOMh1"},
 
-    {"", 0, "!\"#%&',-/0123456789:;<=>ABCDEFGHIJKLMNOPQRSTUVWXYZ_`abcdefghijklmnopqrstuvwxyz~", 4,
+    {"", 0, "!\"#%&',-/0123456789:;<=>ABCDEFGHIJKLMNOPQRSTUVWXYZ_`"
+            "abcdefghijklmnopqrstuvwxyz~", 4,
         {2839ull, 12ull, 32ull, 5ull}, "_nJUNTVU3"},
-    {"", 0, "!\"#%&',-/0123456789:;<=>ABCDEFGHIJKLMNOPQRSTUVWXYZ_`abcdefghijklmnopqrstuvwxyz~", 3,
+    {"", 0, "!\"#%&',-/0123456789:;<=>ABCDEFGHIJKLMNOPQRSTUVWXYZ_`"
+            "abcdefghijklmnopqrstuvwxyz~", 3,
         {1ull, 2ull, 3ull}, "7xfYh2"},
-    {"", 0, "!\"#%&',-/0123456789:;<=>ABCDEFGHIJKLMNOPQRSTUVWXYZ_`abcdefghijklmnopqrstuvwxyz~", 1,
+    {"", 0, "!\"#%&',-/0123456789:;<=>ABCDEFGHIJKLMNOPQRSTUVWXYZ_`"
+            "abcdefghijklmnopqrstuvwxyz~", 1,
         {23832ull}, "Z6R>"},
-    {"", 0, "!\"#%&',-/0123456789:;<=>ABCDEFGHIJKLMNOPQRSTUVWXYZ_`abcdefghijklmnopqrstuvwxyz~", 2,
+    {"", 0, "!\"#%&',-/0123456789:;<=>ABCDEFGHIJKLMNOPQRSTUVWXYZ_`"
+            "abcdefghijklmnopqrstuvwxyz~", 2,
         {99ull, 25ull}, "AYyIB"},
 
     {"", 25, HASHIDS_DEFAULT_ALPHABET, 3,
@@ -214,15 +218,15 @@ f(const char *fmt, ...)
 int
 main(int argc, char **argv)
 {
-    size_t i, j;
+    hashids_t *hashids = NULL;
+    size_t i, j, result;
+    char *buffer = NULL;
+    unsigned long long numbers[16];
+    struct testcase_t testcase;
+    int fail;
+
     /* walk test cases */
     for (i = 0, j = 0;; ++i) {
-        hashids_t *hashids = NULL;
-        char *buffer = NULL;
-        size_t result;
-        unsigned long long numbers[16];
-        struct testcase_t testcase;
-        int fail;
         fail = 0;
 
         if (i && i % 72 == 0) {
@@ -281,15 +285,11 @@ main(int argc, char **argv)
             testcase.numbers);
 
         /* encoding error */
-        if (!result) {
-            fail = 1;
-            failures[j++] = f("#%04d: hashids_encode() returned 0", i + 1);
-            goto test_end;
-        }
-
         if (result < testcase.min_hash_length) {
           fail = 1;
-          failures[j++] = f("#%04d: hashids_encode() returned %u. Minimal hash length is %u", i + 1, result, testcase.min_hash_length);
+          failures[j++] = f("#%04d: hashids_encode() returned %u"
+            "                            expected >=%u", i + 1, result,
+            testcase.min_hash_length);
           goto test_end;
         }
 
