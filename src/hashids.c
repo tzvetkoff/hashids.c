@@ -139,17 +139,9 @@ hashids_init3(const char *salt, size_t min_hash_length, const char *alphabet)
         return NULL;
     }
 
-    /* allocate enough space for the alphabet and its copies */
+    /* allocate enough space for the alphabet */
     len = strlen(alphabet) + 1;
     result->alphabet = _hashids_alloc(len);
-    result->alphabet_copy_1 = _hashids_alloc(len);
-    result->alphabet_copy_2 = _hashids_alloc(len);
-    if (HASHIDS_UNLIKELY(!result->alphabet || !result->alphabet_copy_1
-        || !result->alphabet_copy_2)) {
-        hashids_free(result);
-        hashids_errno = HASHIDS_ERROR_ALLOC;
-        return NULL;
-    }
 
     /* extract only the unique characters */
     result->alphabet[0] = '\0';
@@ -282,6 +274,16 @@ hashids_init3(const char *salt, size_t min_hash_length, const char *alphabet)
             result->alphabet_length - result->guards_count + 1);
 
         result->alphabet_length -= result->guards_count;
+    }
+
+    /* allocate enough space for the alphabet copies */
+    result->alphabet_copy_1 = _hashids_alloc(result->alphabet_length + 1);
+    result->alphabet_copy_2 = _hashids_alloc(result->alphabet_length + 1);
+    if (HASHIDS_UNLIKELY(!result->alphabet || !result->alphabet_copy_1
+        || !result->alphabet_copy_2)) {
+        hashids_free(result);
+        hashids_errno = HASHIDS_ERROR_ALLOC;
+        return NULL;
     }
 
     /* set min hash length */
