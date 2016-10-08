@@ -122,6 +122,13 @@ hashids_free(hashids_t *hashids)
     }
 }
 
+/* helper functions */
+
+inline size_t div_ceil_size_t(size_t x, size_t y)
+{
+  return x / y + (x % y != 0);
+}
+
 /* common init */
 hashids_t *
 hashids_init3(const char *salt, size_t min_hash_length, const char *alphabet)
@@ -251,8 +258,7 @@ hashids_init3(const char *salt, size_t min_hash_length, const char *alphabet)
         result->salt, result->salt_length);
 
     /* allocate guards */
-    result->guards_count = (size_t)ceil((float)result->alphabet_length
-                                               / HASHIDS_GUARD_DIVISOR);
+    result->guards_count = div_ceil_size_t(result->alphabet_length, HASHIDS_GUARD_DIVISOR);
     result->guards = _hashids_alloc(result->guards_count + 1);
     if (HASHIDS_UNLIKELY(!result->guards)) {
         hashids_free(result);
@@ -465,7 +471,7 @@ hashids_encode(hashids_t *hashids, char *buffer,
             ++result_len;
 
             /* pad with half alphabet before and after */
-            half_length_ceil = ceil((float)hashids->alphabet_length / 2);
+            half_length_ceil = div_ceil_size_t(hashids->alphabet_length, 2);
             half_length_floor = floor((float)hashids->alphabet_length / 2);
 
             /* pad, pad, pad */
@@ -478,7 +484,7 @@ hashids_encode(hashids_t *hashids, char *buffer,
                     hashids->alphabet_length);
 
                 /* left pad from the end of the alphabet */
-                i = ceil((float)(hashids->min_hash_length - result_len) / 2);
+                i = div_ceil_size_t(hashids->min_hash_length - result_len, 2);
                 /* right pad from the beginning */
                 j = floor((float)(hashids->min_hash_length - result_len) / 2);
 
