@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <math.h>
+#include <limits.h>
 
 #include "hashids.h"
 
@@ -307,6 +308,34 @@ hashids_init(const char *salt)
     return hashids_init2(salt, HASHIDS_DEFAULT_MIN_HASH_LENGTH);
 }
 
+/* helper methods for hashids_estimate_encoded_size */
+const unsigned short int tab64[64] = {
+    63,  0, 58,  1, 59, 47, 53,  2,
+    60, 39, 48, 27, 54, 33, 42,  3,
+    61, 51, 37, 40, 49, 18, 28, 20,
+    55, 30, 34, 11, 43, 14, 22,  4,
+    62, 57, 46, 52, 38, 26, 32, 41,
+    50, 36, 17, 19, 29, 10, 13, 21,
+    56, 45, 25, 31, 35, 16,  9, 12,
+    44, 24, 15,  8, 23,  7,  6,  5};
+
+/* log2 for unsigned long long integers */
+inline unsigned short int log2_64(unsigned long long value)
+{
+    value |= value >> 1;
+    value |= value >> 2;
+    value |= value >> 4;
+    value |= value >> 8;
+    value |= value >> 16;
+    value |= value >> 32;
+    return tab64[((unsigned long long)((value - (value >> 1))*0x07EDD5E59A4E28C2)) >> 58];
+}
+
+/* ceil division for unsigned short integers */
+inline unsigned short int div_ceil(unsigned short int x, unsigned short int y) {
+  return x / y + (x % y != 0);
+}
+
 /* estimate buffer size (generic) */
 size_t
 hashids_estimate_encoded_size(hashids_t *hashids,
@@ -317,10 +346,10 @@ hashids_estimate_encoded_size(hashids_t *hashids,
     for (i = 0, result_len = 1; i < numbers_count; ++i) {
         if (numbers[i] == 0) {
             result_len += 2;
-        } else if (numbers[i] == 0xFFFFFFFFFFFFFFFFull) {
-            result_len += ceil(log2(numbers[i]) / log2(hashids->alphabet_length)) + 1;
+        } else if (numbers[i] == ULLONG_MAX) {
+            result_len += div_ceil(log2_64(numbers[i]), log2_64(hashids->alphabet_length)) + 1;
         } else {
-            result_len += ceil(log2(numbers[i] + 1) / log2(hashids->alphabet_length)) + 1;
+            result_len += div_ceil(log2_64(numbers[i] + 1), log2_64(hashids->alphabet_length)) + 1;
         }
     }
 
@@ -328,7 +357,7 @@ hashids_estimate_encoded_size(hashids_t *hashids,
         result_len = hashids->min_hash_length + 1;
     }
 
-    return result_len;
+    return result_len + 1;
 }
 
 /* estimate buffer size (variadic) */

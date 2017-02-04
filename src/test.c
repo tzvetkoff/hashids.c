@@ -271,8 +271,16 @@ main(int argc, char **argv)
         }
 
         /* allocate buffer */
-        buffer = calloc(hashids_estimate_encoded_size(hashids,
-            testcase.numbers_count, testcase.numbers), 1);
+        size_t estimated_encoded_size = hashids_estimate_encoded_size(hashids,
+            testcase.numbers_count, testcase.numbers), expected_hash_length = strlen(testcase.expected_hash);
+        if (estimated_encoded_size < strlen(testcase.expected_hash)) {
+          fail = 1;
+          failures[j++] = f("#%04d: hashids_estimate_encoded_size() returned %zu\n"
+              "                        expected at least %zu", i + 1, estimated_encoded_size,
+              expected_hash_length);
+          goto test_end;
+        }
+        buffer = calloc(estimated_encoded_size, 1);
 
         if (!buffer) {
             fail = 1;
