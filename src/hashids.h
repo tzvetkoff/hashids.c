@@ -1,6 +1,8 @@
 #ifndef HASHIDS_H
 #define HASHIDS_H 1
 
+#include <stdlib.h>
+
 /* version constants */
 #define HASHIDS_VERSION "1.1.3"
 #define HASHIDS_VERSION_MAJOR 1
@@ -41,7 +43,7 @@
 /* exported hashids_errno */
 extern int hashids_errno;
 
-/* alloc / free */
+/* alloc & free */
 extern void *(*_hashids_alloc)(size_t size);
 extern void (*_hashids_free)(void *ptr);
 

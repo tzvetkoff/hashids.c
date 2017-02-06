@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <getopt.h>
 
 #include "hashids.h"
 
@@ -16,156 +17,157 @@ struct testcase_t {
     size_t numbers_count;
     unsigned long long numbers[16];
     const char *expected_hash;
+    int line;
 };
 
 struct testcase_t testcases[] = {
     {"", 0, HASHIDS_DEFAULT_ALPHABET, 1,
-        {1ull}, "jR"},
+        {1ull}, "jR", __LINE__},
     {"", 0, HASHIDS_DEFAULT_ALPHABET, 1,
-        {12345ull}, "j0gW"},
+        {12345ull}, "j0gW", __LINE__},
     {"", 0, HASHIDS_DEFAULT_ALPHABET, 1,
-        {22ull}, "Lw"},
+        {22ull}, "Lw", __LINE__},
     {"", 0, HASHIDS_DEFAULT_ALPHABET, 1,
-        {333ull}, "Z0E"},
+        {333ull}, "Z0E", __LINE__},
     {"", 0, HASHIDS_DEFAULT_ALPHABET, 1,
-        {9999ull}, "w0rR"},
+        {9999ull}, "w0rR", __LINE__},
     {"", 0, HASHIDS_DEFAULT_ALPHABET, 1,
-        {18446744073709551615ull}, "AOo9Ql5nQR1VO"},
+        {18446744073709551615ull}, "AOo9Ql5nQR1VO", __LINE__},
     {"", 0, HASHIDS_DEFAULT_ALPHABET, 4,
-        {683ull, 94108ull, 123ull, 5ull}, "vJvi7On9cXGtD"},
+        {683ull, 94108ull, 123ull, 5ull}, "vJvi7On9cXGtD", __LINE__},
     {"", 0, HASHIDS_DEFAULT_ALPHABET, 3,
-        {1ull, 2ull, 3ull}, "o2fXhV"},
+        {1ull, 2ull, 3ull}, "o2fXhV", __LINE__},
     {"", 0, HASHIDS_DEFAULT_ALPHABET, 3,
-        {2ull, 4ull, 6ull}, "xGhmsW"},
+        {2ull, 4ull, 6ull}, "xGhmsW", __LINE__},
     {"", 0, HASHIDS_DEFAULT_ALPHABET, 2,
-        {99ull, 25ull}, "3lKfD"},
+        {99ull, 25ull}, "3lKfD", __LINE__},
 
     {"Arbitrary string", 0, HASHIDS_DEFAULT_ALPHABET, 4,
-        {683ull, 94108ull, 123ull, 5ull}, "QWyf8yboH7KT2"},
+        {683ull, 94108ull, 123ull, 5ull}, "QWyf8yboH7KT2", __LINE__},
     {"Arbitrary string", 0, HASHIDS_DEFAULT_ALPHABET, 3,
-        {1ull, 2ull, 3ull}, "neHrCa"},
+        {1ull, 2ull, 3ull}, "neHrCa", __LINE__},
     {"Arbitrary string", 0, HASHIDS_DEFAULT_ALPHABET, 3,
-        {2ull, 4ull, 6ull}, "LRCgf2"},
+        {2ull, 4ull, 6ull}, "LRCgf2", __LINE__},
     {"Arbitrary string", 0, HASHIDS_DEFAULT_ALPHABET, 2,
-        {99ull, 25ull}, "JOMh1"},
+        {99ull, 25ull}, "JOMh1", __LINE__},
 
     {"", 0, "!\"#%&',-/0123456789:;<=>ABCDEFGHIJKLMNOPQRSTUVWXYZ_`"
             "abcdefghijklmnopqrstuvwxyz~", 4,
-        {2839ull, 12ull, 32ull, 5ull}, "_nJUNTVU3"},
+        {2839ull, 12ull, 32ull, 5ull}, "_nJUNTVU3", __LINE__},
     {"", 0, "!\"#%&',-/0123456789:;<=>ABCDEFGHIJKLMNOPQRSTUVWXYZ_`"
             "abcdefghijklmnopqrstuvwxyz~", 3,
-        {1ull, 2ull, 3ull}, "7xfYh2"},
+        {1ull, 2ull, 3ull}, "7xfYh2", __LINE__},
     {"", 0, "!\"#%&',-/0123456789:;<=>ABCDEFGHIJKLMNOPQRSTUVWXYZ_`"
             "abcdefghijklmnopqrstuvwxyz~", 1,
-        {23832ull}, "Z6R>"},
+        {23832ull}, "Z6R>", __LINE__},
     {"", 0, "!\"#%&',-/0123456789:;<=>ABCDEFGHIJKLMNOPQRSTUVWXYZ_`"
             "abcdefghijklmnopqrstuvwxyz~", 2,
-        {99ull, 25ull}, "AYyIB"},
+        {99ull, 25ull}, "AYyIB", __LINE__},
 
     {"", 25, HASHIDS_DEFAULT_ALPHABET, 3,
-        {7452ull, 2967ull, 21401ull}, "pO3K69b86jzc6krI416enr2B5"},
+        {7452ull, 2967ull, 21401ull}, "pO3K69b86jzc6krI416enr2B5", __LINE__},
     {"", 25, HASHIDS_DEFAULT_ALPHABET, 3,
-        {1ull, 2ull, 3ull}, "gyOwl4B97bo2fXhVaDR0Znjrq"},
+        {1ull, 2ull, 3ull}, "gyOwl4B97bo2fXhVaDR0Znjrq", __LINE__},
     {"", 25, HASHIDS_DEFAULT_ALPHABET, 1,
-        {6097ull}, "Nz7x3VXyMYerRmWeOBQn6LlRG"},
+        {6097ull}, "Nz7x3VXyMYerRmWeOBQn6LlRG", __LINE__},
     {"", 25, HASHIDS_DEFAULT_ALPHABET, 2,
-        {99ull, 25ull}, "k91nqP3RBe3lKfDaLJrvy8XjV"},
+        {99ull, 25ull}, "k91nqP3RBe3lKfDaLJrvy8XjV", __LINE__},
 
     {"arbitrary salt", 16, "abcdefghijklmnopqrstuvwxyz", 3,
-        {7452ull, 2967ull, 21401ull}, "wygqxeunkatjgkrw"},
+        {7452ull, 2967ull, 21401ull}, "wygqxeunkatjgkrw", __LINE__},
     {"arbitrary salt", 16, "abcdefghijklmnopqrstuvwxyz", 3,
-        {1ull, 2ull, 3ull}, "pnovxlaxuriowydb"},
+        {1ull, 2ull, 3ull}, "pnovxlaxuriowydb", __LINE__},
     {"arbitrary salt", 16, "abcdefghijklmnopqrstuvwxyz", 1,
-        {60125ull}, "jkbgxljrjxmlaonp"},
+        {60125ull}, "jkbgxljrjxmlaonp", __LINE__},
     {"arbitrary salt", 16, "abcdefghijklmnopqrstuvwxyz", 2,
-        {99ull, 25ull}, "erdjpwrgouoxlvbx"},
+        {99ull, 25ull}, "erdjpwrgouoxlvbx", __LINE__},
 
     {"", 0, "abdegjklmnopqrvwxyzABDEGJKLMNOPQRVWXYZ1234567890", 3,
-        {7452ull, 2967ull, 21401ull}, "X50Yg6VPoAO4"},
+        {7452ull, 2967ull, 21401ull}, "X50Yg6VPoAO4", __LINE__},
     {"", 0, "abdegjklmnopqrvwxyzABDEGJKLMNOPQRVWXYZ1234567890", 3,
-        {1ull, 2ull, 3ull}, "GAbDdR"},
+        {1ull, 2ull, 3ull}, "GAbDdR", __LINE__},
     {"", 0, "abdegjklmnopqrvwxyzABDEGJKLMNOPQRVWXYZ1234567890", 1,
-        {60125ull}, "5NMPD"},
+        {60125ull}, "5NMPD", __LINE__},
     {"", 0, "abdegjklmnopqrvwxyzABDEGJKLMNOPQRVWXYZ1234567890", 2,
-        {99ull, 25ull}, "yGya5"},
+        {99ull, 25ull}, "yGya5", __LINE__},
 
     {"", 0, "abdegjklmnopqrvwxyzABDEGJKLMNOPQRVWXYZ1234567890uC", 3,
-        {7452ull, 2967ull, 21401ull}, "GJNNmKYzbPBw"},
+        {7452ull, 2967ull, 21401ull}, "GJNNmKYzbPBw", __LINE__},
     {"", 0, "abdegjklmnopqrvwxyzABDEGJKLMNOPQRVWXYZ1234567890uC", 3,
-        {1ull, 2ull, 3ull}, "DQCXa4"},
+        {1ull, 2ull, 3ull}, "DQCXa4", __LINE__},
     {"", 0, "abdegjklmnopqrvwxyzABDEGJKLMNOPQRVWXYZ1234567890uC", 1,
-        {60125ull}, "38V1D"},
+        {60125ull}, "38V1D", __LINE__},
     {"", 0, "abdegjklmnopqrvwxyzABDEGJKLMNOPQRVWXYZ1234567890uC", 2,
-        {99ull, 25ull}, "373az"},
+        {99ull, 25ull}, "373az", __LINE__},
 
     {"this is my salt", 0, HASHIDS_DEFAULT_ALPHABET, 1,
-        {1ull}, "NV"},
+        {1ull}, "NV", __LINE__},
     {"this is my salt", 0, HASHIDS_DEFAULT_ALPHABET, 1,
-        {22ull}, "K4"},
+        {22ull}, "K4", __LINE__},
     {"this is my salt", 0, HASHIDS_DEFAULT_ALPHABET, 1,
-        {333ull}, "OqM"},
+        {333ull}, "OqM", __LINE__},
     {"this is my salt", 0, HASHIDS_DEFAULT_ALPHABET, 1,
-        {9999ull}, "kQVg"},
+        {9999ull}, "kQVg", __LINE__},
     {"this is my salt", 0, HASHIDS_DEFAULT_ALPHABET, 1,
-        {9999ull}, "kQVg"},
+        {9999ull}, "kQVg", __LINE__},
     {"this is my salt", 0, HASHIDS_DEFAULT_ALPHABET, 1,
-        {12345ull}, "NkK9"},
+        {12345ull}, "NkK9", __LINE__},
     {"this is my salt", 0, HASHIDS_DEFAULT_ALPHABET, 1,
-        {123000ull}, "58LzD"},
+        {123000ull}, "58LzD", __LINE__},
     {"this is my salt", 0, HASHIDS_DEFAULT_ALPHABET, 1,
-        {456000000ull}, "5gn6mQP"},
+        {456000000ull}, "5gn6mQP", __LINE__},
     {"this is my salt", 0, HASHIDS_DEFAULT_ALPHABET, 1,
-        {987654321ull}, "oyjYvry"},
+        {987654321ull}, "oyjYvry", __LINE__},
     {"this is my salt", 0, HASHIDS_DEFAULT_ALPHABET, 1,
-        {666555444333222ull}, "KVO9yy1oO5j"},
+        {666555444333222ull}, "KVO9yy1oO5j", __LINE__},
     {"this is my salt", 0, HASHIDS_DEFAULT_ALPHABET, 1,
-        {18446744073709551615ull}, "zXVjmzBamYlqX"},
+        {18446744073709551615ull}, "zXVjmzBamYlqX", __LINE__},
 
     {"this is my salt", 0, HASHIDS_DEFAULT_ALPHABET, 5,
-        {1ull, 2ull, 3ull, 4ull, 5ull}, "zoHWuNhktp"},
+        {1ull, 2ull, 3ull, 4ull, 5ull}, "zoHWuNhktp", __LINE__},
     {"this is my salt", 0, HASHIDS_DEFAULT_ALPHABET, 3,
-        {1ull,2ull,3ull}, "laHquq"},
+        {1ull,2ull,3ull}, "laHquq", __LINE__},
     {"this is my salt", 0, HASHIDS_DEFAULT_ALPHABET, 3,
-        {2ull,4ull,6ull}, "44uotN"},
+        {2ull,4ull,6ull}, "44uotN", __LINE__},
     {"this is my salt", 0, HASHIDS_DEFAULT_ALPHABET, 2,
-        {99ull,25ull}, "97Jun"},
+        {99ull,25ull}, "97Jun", __LINE__},
     {"this is my salt", 0, HASHIDS_DEFAULT_ALPHABET, 3,
-        {1337ull,42ull,314ull}, "7xKhrUxm"},
+        {1337ull,42ull,314ull}, "7xKhrUxm", __LINE__},
     {"this is my salt", 0, HASHIDS_DEFAULT_ALPHABET, 4,
-        {683ull,94108ull,123ull,5ull}, "aBMswoO2UB3Sj"},
+        {683ull,94108ull,123ull,5ull}, "aBMswoO2UB3Sj", __LINE__},
     {"this is my salt", 0, HASHIDS_DEFAULT_ALPHABET, 7,
         {547ull,31ull,241271ull,311ull,31397ull,1129ull,71129ull},
-        "3RoSDhelEyhxRsyWpCx5t1ZK"},
+        "3RoSDhelEyhxRsyWpCx5t1ZK", __LINE__},
     {"this is my salt", 0, HASHIDS_DEFAULT_ALPHABET, 5,
         {21979508ull,35563591ull,57543099ull,93106690ull,150649789ull},
-        "p2xkL3CK33JjcrrZ8vsw4YRZueZX9k"},
+        "p2xkL3CK33JjcrrZ8vsw4YRZueZX9k", __LINE__},
 
     {"this is my salt", 18, HASHIDS_DEFAULT_ALPHABET, 1,
-        {1}, "aJEDngB0NV05ev1WwP"},
+        {1}, "aJEDngB0NV05ev1WwP", __LINE__},
     {"this is my salt", 18, HASHIDS_DEFAULT_ALPHABET, 6,
         {4140ull,21147ull,115975ull,678570ull,4213597ull,27644437ull},
-        "pLMlCWnJSXr1BSpKgqUwbJ7oimr7l6"},
+        "pLMlCWnJSXr1BSpKgqUwbJ7oimr7l6", __LINE__},
 
     {"this is my salt", 0, "ABCDEFGhijklmn34567890-", 5,
-        {1ull,2ull,3ull,4ull,5ull}, "D4h3F7i5Al"},
+        {1ull,2ull,3ull,4ull,5ull}, "D4h3F7i5Al", __LINE__},
 
     {"this is my salt", 0, HASHIDS_DEFAULT_ALPHABET, 4,
-        {5ull,5ull,5ull,5ull}, "1Wc8cwcE"},
+        {5ull,5ull,5ull,5ull}, "1Wc8cwcE", __LINE__},
     {"this is my salt", 0, HASHIDS_DEFAULT_ALPHABET, 10,
         {1ull,2ull,3ull,4ull,5ull,6ull,7ull,8ull,9ull,10ull},
-        "kRHnurhptKcjIDTWC3sx"},
+        "kRHnurhptKcjIDTWC3sx", __LINE__},
 
     {"this is my salt", 0, "cfhistuCFHISTU+-", 1,
-        {1337ull}, "+-+-++---++-"},
+        {1337ull}, "+-+-++---++-", __LINE__},
 
     {"this is my salt", 0, "abdegjkomnopqrvwxyzABDEGJKLMNOPQRVWXYZ1234567890"
         "!@#$%^&*()-_=+;:,.<>/?`~[]{}", 1,
-        {1ull}, "V7"},
+        {1ull}, "V7", __LINE__},
 
     {"", 22, "abdegjk0123456789", 1,
-        {190126ull}, "070683k2j3771430j49157"},
+        {190126ull}, "070683k2j3771430j49157", __LINE__},
     {"\\7ULC'", 22, "@'l*p9n]);+7>Ar(\\", 1,
-        {190126ull}, "9];r(An97\\]]\\()>7>\\)+]"},
+        {190126ull}, "9];r(An97\\]]\\()>7>\\)+]", __LINE__},
 
     {"", 1337, HASHIDS_DEFAULT_ALPHABET, 1,
         {1337ull},
@@ -189,10 +191,10 @@ struct testcase_t testcases[] = {
         "kRM9gNX48v5LjyrZwJWPxDA4KV3pZX0JRD5Ex17lYrm6MWE2jJPpw3qBnGZLQ5NV"
         "M0ogDkzWj0Y84QPmB3L7qw1V9Yo49PW6XAqy807z1NJOKvG4vp780lEoRryjXM9x"
         "wzkJnB79DWXLlNp0jk8mJMK5qyw4QMLGNrJRvWx792Ezqm35nVEyPz9RGl0jrgW3"
-        "BnOZkD4pXRxnmvN0QWP21DEwgq4JABlZ59MzV74nKGAjp6rgvY3p8ywGk"},
+        "BnOZkD4pXRxnmvN0QWP21DEwgq4JABlZ59MzV74nKGAjp6rgvY3p8ywGk", __LINE__},
 
 
-    {NULL, 0, NULL, 0, {0ull}, NULL}
+    {NULL, 0, NULL, 0, {0ull}, NULL, 0}
 };
 
 char *failures[lengthof(testcases)];
@@ -204,7 +206,8 @@ f(const char *fmt, ...)
     va_list ap;
 
     if (!result) {
-        printf("Fatal error: Cannot allocate memory for error description\n");
+        fputs("Fatal error: Cannot allocate memory for error description\n",
+            stdout);
         exit(EXIT_FAILURE);
     }
 
@@ -219,18 +222,35 @@ int
 main(int argc, char **argv)
 {
     hashids_t *hashids = NULL;
-    size_t i, j, result;
+    size_t i = 0, j = 1, k = 0, result = 0;
     char *buffer = NULL;
     unsigned long long numbers[16];
-    struct testcase_t testcase;
-    int fail;
+    struct testcase_t testcase = {};
+    int fail = 0, fail_fast = 0, ch = 0;
+
+    static const struct option longopts[] = {
+        {"fail-fast", no_argument, NULL, 'f'},
+        {NULL, 0, NULL, 0}
+    };
+
+    /* parse command line options */
+    while ((ch = getopt_long(argc, argv, "+f", longopts, NULL)) != -1) {
+        switch (ch) {
+            case 'f':
+                fail_fast = 1;
+                break;
+            default:
+                /* do nothing (and avoid warnings) */
+                (void)NULL;
+        }
+    }
 
     /* walk test cases */
-    for (i = 0, j = 0;; ++i) {
+    for (;; ++i, ++j) {
         fail = 0;
 
         if (i && i % 72 == 0) {
-            printf("\n");
+            fputs("\n", stdout);
         }
 
         testcase = testcases[i];
@@ -250,20 +270,24 @@ main(int argc, char **argv)
 
             switch (hashids_errno) {
                 case HASHIDS_ERROR_ALLOC:
-                    failures[j++] = f("#%04d: hashids_init3(): "
-                        "memory allocation failed", i + 1);
+                    failures[k++] = f("%s:%d: hashids_init3(): "
+                        "memory allocation failed",
+                        __FILE__, testcase.line);
                     break;
                 case HASHIDS_ERROR_ALPHABET_LENGTH:
-                    failures[j++] = f("#%04d: hashids_init3(): "
-                        "alphabet too short", i + 1);
+                    failures[k++] = f("%s:%d: hashids_init3(): "
+                        "alphabet too short",
+                        __FILE__, testcase.line);
                     break;
                 case HASHIDS_ERROR_ALPHABET_SPACE:
-                    failures[j++] = f("#%04d: hashids_init3(): "
-                        "alphabet contains whitespace character", i + 1);
+                    failures[k++] = f("%s:%d: hashids_init3(): "
+                        "alphabet contains whitespace character",
+                        __FILE__, testcase.line);
                     break;
                 default:
-                    failures[j++] = f("#%04d: hashids_init3(): "
-                        "unknown error", i + 1);
+                    failures[k++] = f("%s:%d: hashids_init3(): "
+                        "unknown error",
+                        __FILE__, testcase.line);
                     break;
             }
 
@@ -271,20 +295,24 @@ main(int argc, char **argv)
         }
 
         /* allocate buffer */
-        size_t estimated_encoded_size = hashids_estimate_encoded_size(hashids,
-            testcase.numbers_count, testcase.numbers), expected_hash_length = strlen(testcase.expected_hash);
-        if (estimated_encoded_size < strlen(testcase.expected_hash)) {
-          fail = 1;
-          failures[j++] = f("#%04d: hashids_estimate_encoded_size() returned %zu\n"
-              "                        expected at least %zu", i + 1, estimated_encoded_size,
-              expected_hash_length);
-          goto test_end;
+        size_t
+            estimated_encoded_size = hashids_estimate_encoded_size(hashids,
+                testcase.numbers_count, testcase.numbers),
+            expected_encoded_size = strlen(testcase.expected_hash) + 1;
+        if (estimated_encoded_size < expected_encoded_size) {
+            fail = 1;
+            failures[k++] = f("%s:%d: hashids_estimate_encoded_size() "
+                "returned %u, expected >=%u",
+                __FILE__, testcase.line,
+                estimated_encoded_size, expected_encoded_size);
+            goto test_end;
         }
-        buffer = calloc(estimated_encoded_size, 1);
 
+        buffer = calloc(estimated_encoded_size, 1);
         if (!buffer) {
             fail = 1;
-            failures[j++] = f("#%04d: cannot allocate buffer", i + 1);
+            failures[k++] = f("%s:%d: cannot allocate buffer",
+                __FILE__, testcase.line);
             goto test_end;
         }
 
@@ -294,19 +322,21 @@ main(int argc, char **argv)
 
         /* encoding error */
         if (result < testcase.min_hash_length) {
-          fail = 1;
-          failures[j++] = f("#%04d: hashids_encode() returned %u"
-            "                            expected >=%u", i + 1, result,
-            testcase.min_hash_length);
-          goto test_end;
+            fail = 1;
+            failures[k++] = f("%s:%d: hashids_encode() "
+                "returned %u, expected >=%u",
+                __FILE__, testcase.line,
+                result, testcase.min_hash_length);
+            goto test_end;
         }
 
         /* compare encoded string */
         if (strcmp(buffer, testcase.expected_hash) != 0) {
             fail = 1;
-            failures[j++] = f("#%04d: hashids_encode() returned \"%s\"\n"
-                "                        expected \"%s\"", i + 1, buffer,
-                testcase.expected_hash);
+            failures[k++] = f("%s:%d: hashids_encode() "
+                "returned \"%s\", expected \"%s\"",
+                __FILE__, testcase.line,
+                buffer, testcase.expected_hash);
             goto test_end;
         }
 
@@ -316,9 +346,10 @@ main(int argc, char **argv)
         /* decoding error */
         if (result != testcase.numbers_count) {
             fail = 1;
-            failures[j++] = f("#%04d: hashids_decode() returned %u\n"
-                "                        expected %u", i + 1, result,
-                testcase.numbers_count);
+            failures[k++] = f("%s:%d: hashids_decode() "
+                "returned %u, expected %u",
+                __FILE__, testcase.line,
+                result, testcase.numbers_count);
             goto test_end;
         }
 
@@ -326,8 +357,9 @@ main(int argc, char **argv)
         if (memcmp(numbers, testcase.numbers,
                 result * sizeof(unsigned long long))) {
             fail = 1;
-            failures[j++] = f("#%04d: hashids_decode() decoding error", i + 1);
-            goto test_end;
+            failures[k++] = f("%s:%d: hashids_decode() decoding error",
+                __FILE__, testcase.line);
+            goto test_end;  /* nop? */
         }
 
 test_end:
@@ -335,24 +367,41 @@ test_end:
 
         if (hashids) {
             hashids_free(hashids);
+            hashids = NULL;
         }
         if (buffer) {
             free(buffer);
+            buffer = NULL;
+        }
+
+        if (fail && fail_fast) {
+            fputs("\n\n", stdout);
+            printf("test            : %s:%d\n", __FILE__, testcase.line);
+            printf("salt            : \"%s\"\n", testcase.salt);
+            printf("min_hash_length : %lu\n", testcase.min_hash_length);
+            printf("alphabet        : \"%s\"\n", testcase.alphabet);
+            fputs( "numbers         : ", stdout);
+            for (i = 0; i < testcase.numbers_count; ++i) {
+                printf("%llu", testcase.numbers[i]);
+                if (i < testcase.numbers_count - 1) {
+                    fputs(" ", stdout);
+                }
+            }
+            fputs("\n", stdout);
+            printf("expected_hash   : %s", testcase.expected_hash);
+            break;
         }
     }
 
-    printf("\n\n");
-
-    for (i = 0; i < j; ++i) {
-        printf("%s\n", failures[i]);
-        free(failures[i]);
+    if (failures[0]) {
+        fputs("\n\n", stdout);
+        for (i = 0; failures[i]; ++i) {
+            printf("%s\n", failures[i]);
+            free(failures[i]);
+        }
     }
 
-    if (j) {
-        printf("\n");
-    }
+    printf("\n%lu samples, %lu failures\n", j, k);
 
-    printf("%lu samples, %lu failures\n", lengthof(testcases) - 1, j);
-
-    return j ? EXIT_FAILURE : EXIT_SUCCESS;
+    return k ? EXIT_FAILURE : EXIT_SUCCESS;
 }

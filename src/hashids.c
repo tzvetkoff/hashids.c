@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <math.h>
-#include <limits.h>
 
 #include "hashids.h"
 
@@ -21,14 +20,15 @@
 /* exported hashids_errno */
 int hashids_errno;
 
-/* alloc/free */
-static void *
+/* default alloc() implementation */
+static inline void *
 hashids_alloc_f(size_t size)
 {
     return calloc(size, 1);
 }
 
-static void
+/* default free() implementation */
+static inline void
 hashids_free_f(void *ptr)
 {
     free(ptr);
@@ -36,6 +36,46 @@ hashids_free_f(void *ptr)
 
 void *(*_hashids_alloc)(size_t size) = hashids_alloc_f;
 void (*_hashids_free)(void *ptr) = hashids_free_f;
+
+/* fast ceil(x / y) for size_t arguments */
+static inline size_t
+hashids_div_ceil_size_t(size_t x, size_t y)
+{
+    return x / y + !!(x % y);
+}
+
+/* fast ceil(x / y) for unsigned short arguments */
+static inline unsigned short
+hashids_div_ceil_unsigned_short(unsigned short x, unsigned short y) {
+    return x / y + !!(x % y);
+}
+
+/* fast log2(x) for unsigned long long */
+const unsigned short hashids_log2_64_tab[64] = {
+    63,  0, 58,  1, 59, 47, 53,  2,
+    60, 39, 48, 27, 54, 33, 42,  3,
+    61, 51, 37, 40, 49, 18, 28, 20,
+    55, 30, 34, 11, 43, 14, 22,  4,
+    62, 57, 46, 52, 38, 26, 32, 41,
+    50, 36, 17, 19, 29, 10, 13, 21,
+    56, 45, 25, 31, 35, 16,  9, 12,
+    44, 24, 15,  8, 23,  7,  6,  5
+};
+
+static inline unsigned short
+hashids_log2_64(unsigned long long x)
+{
+    x |= x >> 1;
+    x |= x >> 2;
+    x |= x >> 4;
+    x |= x >> 8;
+    x |= x >> 16;
+    x |= x >> 32;
+
+    /* pure evil : ieee abuse */
+    return hashids_log2_64_tab[
+        ((unsigned long long)((x - (x >> 1)) * 0x07EDD5E59A4E28C2)) >> 58];
+}
 
 /* shuffle loop step */
 #define hashids_shuffle_step(iter) \
@@ -53,10 +93,12 @@ hashids_shuffle(char *str, size_t str_length, char *salt, size_t salt_length)
     size_t j, v, p;
     char temp;
 
+    /* meh, meh */
     if (!salt_length) {
         return;
     }
 
+    /* pure evil : loop unroll */
     for (i = str_length - 1, v = 0, p = 0; i > 0; /* empty */) {
         switch (i % 32) {
             case 31: hashids_shuffle_step(i);
@@ -121,13 +163,6 @@ hashids_free(hashids_t *hashids)
 
         _hashids_free(hashids);
     }
-}
-
-/* helper functions */
-
-inline size_t div_ceil_size_t(size_t x, size_t y)
-{
-  return x / y + (x % y != 0);
 }
 
 /* common init */
@@ -259,7 +294,8 @@ hashids_init3(const char *salt, size_t min_hash_length, const char *alphabet)
         result->salt, result->salt_length);
 
     /* allocate guards */
-    result->guards_count = div_ceil_size_t(result->alphabet_length, HASHIDS_GUARD_DIVISOR);
+    result->guards_count = hashids_div_ceil_size_t(result->alphabet_length,
+        HASHIDS_GUARD_DIVISOR);
     result->guards = _hashids_alloc(result->guards_count + 1);
     if (HASHIDS_UNLIKELY(!result->guards)) {
         hashids_free(result);
@@ -314,34 +350,6 @@ hashids_init(const char *salt)
     return hashids_init2(salt, HASHIDS_DEFAULT_MIN_HASH_LENGTH);
 }
 
-/* helper methods for hashids_estimate_encoded_size */
-const unsigned short int tab64[64] = {
-    63,  0, 58,  1, 59, 47, 53,  2,
-    60, 39, 48, 27, 54, 33, 42,  3,
-    61, 51, 37, 40, 49, 18, 28, 20,
-    55, 30, 34, 11, 43, 14, 22,  4,
-    62, 57, 46, 52, 38, 26, 32, 41,
-    50, 36, 17, 19, 29, 10, 13, 21,
-    56, 45, 25, 31, 35, 16,  9, 12,
-    44, 24, 15,  8, 23,  7,  6,  5};
-
-/* log2 for unsigned long long integers */
-inline unsigned short int log2_64(unsigned long long value)
-{
-    value |= value >> 1;
-    value |= value >> 2;
-    value |= value >> 4;
-    value |= value >> 8;
-    value |= value >> 16;
-    value |= value >> 32;
-    return tab64[((unsigned long long)((value - (value >> 1))*0x07EDD5E59A4E28C2)) >> 58];
-}
-
-/* ceil division for unsigned short integers */
-inline unsigned short int div_ceil(unsigned short int x, unsigned short int y) {
-  return x / y + (x % y != 0);
-}
-
 /* estimate buffer size (generic) */
 size_t
 hashids_estimate_encoded_size(hashids_t *hashids,
@@ -352,18 +360,26 @@ hashids_estimate_encoded_size(hashids_t *hashids,
     for (i = 0, result_len = 1; i < numbers_count; ++i) {
         if (numbers[i] == 0) {
             result_len += 2;
-        } else if (numbers[i] == ULLONG_MAX) {
-            result_len += div_ceil(log2_64(numbers[i]), log2_64(hashids->alphabet_length)) + 1;
+        } else if (numbers[i] == 0xFFFFFFFFFFFFFFFFull) {
+            result_len += hashids_div_ceil_unsigned_short(
+                hashids_log2_64(numbers[i]),
+                hashids_log2_64(hashids->alphabet_length)) - 1;
         } else {
-            result_len += div_ceil(log2_64(numbers[i] + 1), log2_64(hashids->alphabet_length)) + 1;
+            result_len += hashids_div_ceil_unsigned_short(
+                hashids_log2_64(numbers[i] + 1),
+                hashids_log2_64(hashids->alphabet_length));
         }
     }
 
-    if (result_len <= hashids->min_hash_length) {
-        result_len = hashids->min_hash_length + 1;
+    if (numbers_count > 1) {
+        result_len += numbers_count - 1;
     }
 
-    return result_len + 1;
+    if (result_len < hashids->min_hash_length) {
+        result_len = hashids->min_hash_length;
+    }
+
+    return result_len + 2 /* fast log2 & ceil sometimes undershoot by 1 */;
 }
 
 /* estimate buffer size (variadic) */
@@ -500,7 +516,8 @@ hashids_encode(hashids_t *hashids, char *buffer,
             ++result_len;
 
             /* pad with half alphabet before and after */
-            half_length_ceil = div_ceil_size_t(hashids->alphabet_length, 2);
+            half_length_ceil = hashids_div_ceil_size_t(
+                hashids->alphabet_length, 2);
             half_length_floor = floor((float)hashids->alphabet_length / 2);
 
             /* pad, pad, pad */
@@ -513,7 +530,8 @@ hashids_encode(hashids_t *hashids, char *buffer,
                     hashids->alphabet_length);
 
                 /* left pad from the end of the alphabet */
-                i = div_ceil_size_t(hashids->min_hash_length - result_len, 2);
+                i = hashids_div_ceil_size_t(
+                    hashids->min_hash_length - result_len, 2);
                 /* right pad from the beginning */
                 j = floor((float)(hashids->min_hash_length - result_len) / 2);
 
