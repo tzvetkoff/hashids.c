@@ -652,8 +652,8 @@ hashids_decode(hashids_t *hashids, char *str,
     unsigned long long *numbers)
 {
     size_t numbers_count;
-    unsigned long long number;
-    char lottery, ch, *p, *c;
+    unsigned long long number, *numbers_ptr = numbers;
+    char lottery, ch, *p, *c, *hashid = str;
     int p_max;
 
     numbers_count = hashids_numbers_count(hashids, str);
@@ -733,6 +733,26 @@ hashids_decode(hashids_t *hashids, char *str,
 
     /* store last number */
     *numbers = number;
+
+    char *buffer = _hashids_alloc(hashids_estimate_encoded_size(hashids, numbers_count, numbers_ptr) + 1);
+    if (HASHIDS_UNLIKELY(!buffer)) {
+      hashids_errno = HASHIDS_ERROR_ALLOC;
+      return 0;
+    }
+
+    if (!hashids_encode(hashids, buffer, numbers_count, numbers_ptr)) {
+        hashids_errno = HASHIDS_ERROR_INVALID_HASH;
+        _hashids_free(buffer);
+        return 0;
+    }
+
+    if (HASHIDS_UNLIKELY(strcmp(buffer, hashid))) {
+      hashids_errno = HASHIDS_ERROR_INVALID_HASH;
+      _hashids_free(buffer);
+      return 0;
+    }
+
+    _hashids_free(buffer);
 
     return numbers_count;
 }
