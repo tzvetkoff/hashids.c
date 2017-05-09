@@ -1,7 +1,7 @@
 # Define the package version numbers, bug reporting link, project homepage.
 m4_define([HASHIDS_VERSION_MAJOR_], [1])
 m4_define([HASHIDS_VERSION_MINOR_], [1])
-m4_define([HASHIDS_VERSION_PATCH_], [4])
+m4_define([HASHIDS_VERSION_PATCH_], [5])
 m4_define([HASHIDS_VERSION_STRING_], [HASHIDS_VERSION_MAJOR_.HASHIDS_VERSION_MINOR_.HASHIDS_VERSION_PATCH_])
 m4_define([HASHIDS_BUGREPORT_URL_], [https://github.com/tzvetkoff/hashids.c/issues])
 m4_define([HASHIDS_PROJECT_URL_], [https://github.com/tzvetkoff/hashids.c])
@@ -27,6 +27,9 @@ LT_INIT()
 # GLibC's math.
 AC_CHECK_LIB([m], [ceil], [LIBM="-lm"])
 AC_SUBST([LIBM])
+
+# TLS.
+AX_TLS([:], [:])
 
 # Debug.
 AC_ARG_ENABLE([debug], AS_HELP_STRING([--enable-debug], [Enable debugging @<:@default=no@:>@.]), [

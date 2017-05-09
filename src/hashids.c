@@ -6,6 +6,7 @@
 
 #include "hashids.h"
 
+/* branch prediction hinting */
 #ifndef __has_builtin
 #   define __has_builtin(x) (0)
 #endif
@@ -17,8 +18,18 @@
 #   define HASHIDS_UNLIKELY(x)      (x)
 #endif
 
-/* exported hashids_errno */
-int hashids_errno;
+/* thread-local storage */
+#ifndef TLS
+#define TLS
+#endif
+
+/* thread-safe hashids_errno indirection */
+TLS int __hashids_errno_val;
+int *
+__hashids_errno_addr()
+{
+    return &__hashids_errno_val;
+}
 
 /* default alloc() implementation */
 static inline void *

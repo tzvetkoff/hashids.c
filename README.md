@@ -268,6 +268,8 @@ The library uses its own `extern int hashids_errno` for error handling, thus it 
 | __HASHIDS_ERROR_INVALID_HASH__        |    -4 | An invalid hash has been passed to `hashids_decode()`                 |
 | __HASHIDS_ERROR_INVALID_NUMBER__      |    -5 | An invalid hex string has been passed to `hashids_encode_hex()`       |
 
+Since `v1.1.5` `hashids_errno` is thread-safe.
+
 ## Memory allocation
 
 Since the `hashids_init*` (and some of the `*_v`) functions are memory-dependent, this library is trying to be allocator-agnostic.

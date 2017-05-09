@@ -4,10 +4,10 @@
 #include <stdlib.h>
 
 /* version constants */
-#define HASHIDS_VERSION "1.1.3"
+#define HASHIDS_VERSION "1.1.5"
 #define HASHIDS_VERSION_MAJOR 1
 #define HASHIDS_VERSION_MINOR 1
-#define HASHIDS_VERSION_PATCH 3
+#define HASHIDS_VERSION_PATCH 5
 
 /* minimal alphabet length */
 #define HASHIDS_MIN_ALPHABET_LENGTH 16u
@@ -33,15 +33,16 @@
 #define HASHIDS_DEFAULT_SEPARATORS "cfhistuCFHISTU"
 
 /* error codes */
-#define HASHIDS_ERROR_OK 0
-#define HASHIDS_ERROR_ALLOC -1
-#define HASHIDS_ERROR_ALPHABET_LENGTH -2
-#define HASHIDS_ERROR_ALPHABET_SPACE -3
-#define HASHIDS_ERROR_INVALID_HASH -4
-#define HASHIDS_ERROR_INVALID_NUMBER -5
+#define HASHIDS_ERROR_OK                0
+#define HASHIDS_ERROR_ALLOC             -1
+#define HASHIDS_ERROR_ALPHABET_LENGTH   -2
+#define HASHIDS_ERROR_ALPHABET_SPACE    -3
+#define HASHIDS_ERROR_INVALID_HASH      -4
+#define HASHIDS_ERROR_INVALID_NUMBER    -5
 
-/* exported hashids_errno */
-extern int hashids_errno;
+/* thread-safe hashids_errno indirection */
+extern int *__hashids_errno_addr();
+#define hashids_errno (*__hashids_errno_addr())
 
 /* alloc & free */
 extern void *(*_hashids_alloc)(size_t size);
