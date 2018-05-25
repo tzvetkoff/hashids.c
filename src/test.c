@@ -6,6 +6,24 @@
 
 #include "hashids.h"
 
+#define RESET   "\033[0m"
+#define BLACK   "\033[30m"      /* Black */
+#define RED     "\033[31m"      /* Red */
+#define GREEN   "\033[32m"      /* Green */
+#define YELLOW  "\033[33m"      /* Yellow */
+#define BLUE    "\033[34m"      /* Blue */
+#define MAGENTA "\033[35m"      /* Magenta */
+#define CYAN    "\033[36m"      /* Cyan */
+#define WHITE   "\033[37m"      /* White */
+#define BOLDBLACK   "\033[1m\033[30m"      /* Bold Black */
+#define BOLDRED     "\033[1m\033[31m"      /* Bold Red */
+#define BOLDGREEN   "\033[1m\033[32m"      /* Bold Green */
+#define BOLDYELLOW  "\033[1m\033[33m"      /* Bold Yellow */
+#define BOLDBLUE    "\033[1m\033[34m"      /* Bold Blue */
+#define BOLDMAGENTA "\033[1m\033[35m"      /* Bold Magenta */
+#define BOLDCYAN    "\033[1m\033[36m"      /* Bold Cyan */
+#define BOLDWHITE   "\033[1m\033[37m"      /* Bold White */
+
 #ifndef lengthof
 #define lengthof(x) ((size_t)(sizeof(x) / sizeof(x[0])))
 #endif
@@ -206,7 +224,7 @@ f(const char *fmt, ...)
     va_list ap;
 
     if (!result) {
-        fputs("Fatal error: Cannot allocate memory for error description\n",
+        fputs(RED "Fatal error: Cannot allocate memory for error description\n" RESET,
             stdout);
         exit(EXIT_FAILURE);
     }
@@ -245,6 +263,18 @@ main(int argc, char **argv)
         }
     }
 
+    size_t tests_count;
+    for (tests_count = 0;; ++tests_count) {
+      testcase = testcases[tests_count];
+
+      /* bail out */
+      if (!testcase.salt || !testcase.alphabet || !testcase.expected_hash) {
+          break;
+      }
+    }
+
+    printf(BOLDCYAN "Running %zu tests\n" RESET, tests_count);
+
     /* walk test cases */
     for (;; ++i, ++j) {
         fail = 0;
@@ -270,23 +300,23 @@ main(int argc, char **argv)
 
             switch (hashids_errno) {
                 case HASHIDS_ERROR_ALLOC:
-                    failures[k++] = f("%s:%d: hashids_init3(): "
-                        "memory allocation failed",
+                    failures[k++] = f(RED "%s:%d: hashids_init3(): "
+                        "memory allocation failed" RESET,
                         __FILE__, testcase.line);
                     break;
                 case HASHIDS_ERROR_ALPHABET_LENGTH:
-                    failures[k++] = f("%s:%d: hashids_init3(): "
-                        "alphabet too short",
+                    failures[k++] = f(RED "%s:%d: hashids_init3(): "
+                        "alphabet too short" RESET,
                         __FILE__, testcase.line);
                     break;
                 case HASHIDS_ERROR_ALPHABET_SPACE:
-                    failures[k++] = f("%s:%d: hashids_init3(): "
-                        "alphabet contains whitespace character",
+                    failures[k++] = f(RED "%s:%d: hashids_init3(): "
+                        "alphabet contains whitespace character" RESET,
                         __FILE__, testcase.line);
                     break;
                 default:
-                    failures[k++] = f("%s:%d: hashids_init3(): "
-                        "unknown error",
+                    failures[k++] = f(RED "%s:%d: hashids_init3(): "
+                        "unknown error" RESET,
                         __FILE__, testcase.line);
                     break;
             }
@@ -311,7 +341,7 @@ main(int argc, char **argv)
         buffer = calloc(estimated_encoded_size, 1);
         if (!buffer) {
             fail = 1;
-            failures[k++] = f("%s:%d: cannot allocate buffer",
+            failures[k++] = f(RED "%s:%d: cannot allocate buffer" RESET,
                 __FILE__, testcase.line);
             goto test_end;
         }
@@ -323,8 +353,8 @@ main(int argc, char **argv)
         /* encoding error */
         if (result < testcase.min_hash_length) {
             fail = 1;
-            failures[k++] = f("%s:%d: hashids_encode() "
-                "returned %u, expected >=%u",
+            failures[k++] = f(RED "%s:%d: hashids_encode() "
+                "returned %u, expected >=%u" RESET,
                 __FILE__, testcase.line,
                 result, testcase.min_hash_length);
             goto test_end;
@@ -333,8 +363,8 @@ main(int argc, char **argv)
         /* compare encoded string */
         if (strcmp(buffer, testcase.expected_hash) != 0) {
             fail = 1;
-            failures[k++] = f("%s:%d: hashids_encode() "
-                "returned \"%s\", expected \"%s\"",
+            failures[k++] = f(RED "%s:%d: hashids_encode() "
+                "returned \"%s\", expected \"%s\"" RESET,
                 __FILE__, testcase.line,
                 buffer, testcase.expected_hash);
             goto test_end;
@@ -346,8 +376,8 @@ main(int argc, char **argv)
         /* decoding error */
         if (result != testcase.numbers_count) {
             fail = 1;
-            failures[k++] = f("%s:%d: hashids_decode() "
-                "returned %u, expected %u",
+            failures[k++] = f(RED "%s:%d: hashids_decode() "
+                "returned %u, expected %u" RESET,
                 __FILE__, testcase.line,
                 result, testcase.numbers_count);
             goto test_end;
@@ -357,13 +387,13 @@ main(int argc, char **argv)
         if (memcmp(numbers, testcase.numbers,
                 result * sizeof(unsigned long long))) {
             fail = 1;
-            failures[k++] = f("%s:%d: hashids_decode() decoding error",
+            failures[k++] = f(RED "%s:%d: hashids_decode() decoding error" RESET,
                 __FILE__, testcase.line);
             goto test_end;  /* nop? */
         }
 
 test_end:
-        fputc(fail ? 'F' : '.', stdout);
+        printf(fail ? RED "F" RESET : GREEN "." RESET);
 
         if (hashids) {
             hashids_free(hashids);
@@ -376,11 +406,11 @@ test_end:
 
         if (fail && fail_fast) {
             fputs("\n\n", stdout);
-            printf("test            : %s:%d\n", __FILE__, testcase.line);
-            printf("salt            : \"%s\"\n", testcase.salt);
-            printf("min_hash_length : %lu\n", testcase.min_hash_length);
-            printf("alphabet        : \"%s\"\n", testcase.alphabet);
-            fputs( "numbers         : ", stdout);
+            printf(RED "test            : %s:%d\n" RESET, __FILE__, testcase.line);
+            printf(RED "salt            : \"%s\"\n" RESET, testcase.salt);
+            printf(RED "min_hash_length : %lu\n" RESET, testcase.min_hash_length);
+            printf(RED "alphabet        : \"%s\"\n" RESET, testcase.alphabet);
+            fputs(RED "numbers         : " RESET, stdout);
             for (i = 0; i < testcase.numbers_count; ++i) {
                 printf("%llu", testcase.numbers[i]);
                 if (i < testcase.numbers_count - 1) {
@@ -388,7 +418,7 @@ test_end:
                 }
             }
             fputs("\n", stdout);
-            printf("expected_hash   : %s", testcase.expected_hash);
+            printf(RED "expected_hash   : %s" RESET, testcase.expected_hash);
             break;
         }
     }
@@ -399,9 +429,11 @@ test_end:
             printf("%s\n", failures[i]);
             free(failures[i]);
         }
+        printf(BOLDRED "\n%lu samples, %lu failures\n" RESET, j, k);
     }
-
-    printf("\n%lu samples, %lu failures\n", j, k);
+    else {
+      printf(BOLDGREEN "\n%lu samples, %lu failures\n" RESET, j, k);
+    }
 
     return k ? EXIT_FAILURE : EXIT_SUCCESS;
 }
