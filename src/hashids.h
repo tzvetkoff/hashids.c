@@ -41,7 +41,7 @@
 #define HASHIDS_ERROR_INVALID_NUMBER    -5
 
 /* thread-safe hashids_errno indirection */
-extern int *__hashids_errno_addr();
+extern int *__hashids_errno_addr(void);
 #define hashids_errno (*__hashids_errno_addr())
 
 /* alloc & free */
