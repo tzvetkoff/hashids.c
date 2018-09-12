@@ -33,7 +33,8 @@ If you want to roll your own allocator, [look here](#memory-allocation).
 The C version of Hashids works (presumably, and only) with `unsigned long long` arguments.
 Negative (signed) integers are, by design, treated as very big unsigned ones.
 
-Note: The API has changed a bit since version 1.1.0. `hashids_t` is now a type alias of `struct hashids_t`.
+Note: The API has changed a bit since version `1.1.0`. `hashids_t` is now a type alias of `struct hashids_t`.
+Note: Since version `1.2.0` `hashids_decode` has a 4th parameter for bounds checking.
 
 #### Preamble
 

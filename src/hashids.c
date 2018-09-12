@@ -759,7 +759,7 @@ size_t
 hashids_decode_unsafe(hashids_t *hashids, char *str,
     unsigned long long *numbers)
 {
-    return hashids_decode(hashids, str, numbers, SIZE_MAX);
+    return hashids_decode(hashids, str, numbers, (size_t)-1);
 }
 
 /* encode hex */
