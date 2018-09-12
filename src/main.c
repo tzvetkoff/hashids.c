@@ -239,7 +239,7 @@ main(int argc, char **argv)
             return EXIT_FAILURE;
         }
 
-        hashids_decode(hashids, argv[i], numbers);
+        hashids_decode(hashids, argv[i], numbers, numbers_count);
 
         for (j = 0; j < numbers_count; ++j) {
             printf("%llu", numbers[j]);

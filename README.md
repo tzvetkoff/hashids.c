@@ -206,18 +206,37 @@ size_t numbers_count = hashids_numbers_count(hashids, "ADf9h9i0sQ");
 
 ``` c
 size_t
-hashids_decode(hashids_t *hashids, char *str, unsigned long long *numbers);
+hashids_decode(hashids_t *hashids, char *str, unsigned long long *numbers, size_t numbers_max);
 ```
 
 The common decoding decoder.
-Will decode a string hash to an array of `ULONGLONG`s.
+Will decode a string hash to an array of `ULONGLONG`s with a limit check.
+If you pass `NULL` as output or `0` as limit, the number count will be returned.
 If the function returns `0`, the hash is probably hashed with a different salt/alphabet.
 
 Example:
 
 ``` c
 unsigned long long numbers[5];
-result = hashids_decode(hashids, "QkoW1vt955nxCVVjZDt5VD2PTgBP72", numbers);
+result = hashids_decode(hashids, "QkoW1vt955nxCVVjZDt5VD2PTgBP72", numbers, 5);
+/* numbers = {21979508, 35563591, 57543099, 93106690, 150649789}, result => 5 */
+```
+
+#### hashids_decode_unsafe
+
+``` c
+size_t
+hashids_decode_unsafe(hashids_t *hashids, char *str, unsigned long long *numbers);
+```
+
+The unsafe decoding decoder. Kept mostly for the ease of use.
+Will decode a string hash to an array of `ULONGLONG`s with **no** boundary checks.
+
+Example:
+
+``` c
+unsigned long long numbers[5];
+result = hashids_decode_unsafe(hashids, "QkoW1vt955nxCVVjZDt5VD2PTgBP72", numbers);
 /* numbers = {21979508, 35563591, 57543099, 93106690, 150649789}, result => 5 */
 ```
 

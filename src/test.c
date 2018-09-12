@@ -153,9 +153,10 @@ struct testcase_t testcases[] = {
 
     {"this is my salt", 0, HASHIDS_DEFAULT_ALPHABET, 4,
         {5ull,5ull,5ull,5ull}, "1Wc8cwcE", __LINE__},
-    {"this is my salt", 0, HASHIDS_DEFAULT_ALPHABET, 10,
-        {1ull,2ull,3ull,4ull,5ull,6ull,7ull,8ull,9ull,10ull},
-        "kRHnurhptKcjIDTWC3sx", __LINE__},
+    {"this is my salt", 0, HASHIDS_DEFAULT_ALPHABET, 16,
+        {1ull,2ull,3ull,4ull,5ull,6ull,7ull,8ull,
+            9ull,10ull,11ull,12ull,13ull,14ull,15ull,16ull},
+        "2bHPuPh5tycXIRTLCos9FaiXfoSEUQHB", __LINE__},
 
     {"this is my salt", 0, "cfhistuCFHISTU+-", 1,
         {1337ull}, "+-+-++---++-", __LINE__},
@@ -341,7 +342,7 @@ main(int argc, char **argv)
         }
 
         /* decode */
-        result = hashids_decode(hashids, buffer, numbers);
+        result = hashids_decode(hashids, buffer, numbers, 16);
 
         /* decoding error */
         if (result != testcase.numbers_count) {

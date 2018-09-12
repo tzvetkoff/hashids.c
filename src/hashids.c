@@ -659,18 +659,16 @@ hashids_numbers_count(hashids_t *hashids, char *str)
 
 /* decode */
 size_t
-hashids_decode(hashids_t *hashids, char *str,
-    unsigned long long *numbers)
+hashids_decode(hashids_t *hashids, char *str, unsigned long long *numbers,
+    size_t numbers_max)
 {
     size_t numbers_count;
     unsigned long long number;
     char lottery, ch, *p, *c;
     int p_max;
 
-    numbers_count = hashids_numbers_count(hashids, str);
-
-    if (!numbers) {
-        return numbers_count;
+    if (!numbers || !numbers_max) {
+        return hashids_numbers_count(hashids, str);
     }
 
     /* skip characters until we find a guard */
@@ -712,13 +710,21 @@ hashids_decode(hashids_t *hashids, char *str,
         hashids->alphabet_copy_2, hashids->alphabet_length);
 
     /* parse */
+    numbers_count = 0;
     number = 0;
     while ((ch = *str)) {
         if (strchr(hashids->guards, ch)) {
             break;
         }
         if (strchr(hashids->separators, ch)) {
+            /* store the number */
             *numbers++ = number;
+
+            /* check limit */
+            if (++numbers_count >= numbers_max) {
+                return numbers_count;
+            }
+
             number = 0;
 
             /* resalt the alphabet */
@@ -745,7 +751,15 @@ hashids_decode(hashids_t *hashids, char *str,
     /* store last number */
     *numbers = number;
 
-    return numbers_count;
+    return numbers_count + 1;
+}
+
+/* unsafe decode */
+size_t
+hashids_decode_unsafe(hashids_t *hashids, char *str,
+    unsigned long long *numbers)
+{
+    return hashids_decode(hashids, str, numbers, SIZE_MAX);
 }
 
 /* encode hex */
@@ -797,7 +811,7 @@ hashids_decode_hex(hashids_t *hashids, char *str, char *output)
         return 0;
     }
 
-    result = hashids_decode(hashids, str, &number);
+    result = hashids_decode_unsafe(hashids, str, &number);
 
     if (result != 1) {
         return 0;
