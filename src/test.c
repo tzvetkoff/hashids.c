@@ -225,7 +225,7 @@ main(int argc, char **argv)
     size_t i = 0, j = 1, k = 0, result = 0;
     char *buffer = NULL;
     unsigned long long numbers[16];
-    struct testcase_t testcase = {};
+    struct testcase_t testcase = {NULL, 0, NULL, 0, {0}, NULL, 0};
     int fail = 0, fail_fast = 0, ch = 0;
 
     static const struct option longopts[] = {
