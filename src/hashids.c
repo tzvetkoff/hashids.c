@@ -96,6 +96,14 @@ hashids_log2_64(unsigned long long x)
     temp = str[(iter)]; str[(iter)] = str[j]; str[j] = temp;    \
     --i; ++v;
 
+/* clear result before encode */
+void
+_hashids_clear_numbers(unsigned long long *numbers, size_t numbers_count)
+{
+  hashids_errno = HASHIDS_ERROR_INVALID_HASH;
+  memset(numbers, 0, sizeof(unsigned long long) * numbers_count);
+}
+
 /* consistent shuffle */
 void
 hashids_shuffle(char *str, size_t str_length, char *salt, size_t salt_length)
@@ -663,9 +671,12 @@ hashids_decode(hashids_t *hashids, char *str, unsigned long long *numbers,
     size_t numbers_max)
 {
     size_t numbers_count;
-    unsigned long long number;
-    char lottery, ch, *p, *c;
+    unsigned long long number, *numbers_start;
+    char lottery, ch, *p, *c, *str_cpy, *str_start;
     int p_max;
+
+    str_start = str;
+    numbers_start = numbers;
 
     if (!numbers || !numbers_max) {
         return hashids_numbers_count(hashids, str);
@@ -722,7 +733,8 @@ hashids_decode(hashids_t *hashids, char *str, unsigned long long *numbers,
 
             /* check limit */
             if (++numbers_count >= numbers_max) {
-                return numbers_count;
+              hashids_errno = HASHIDS_ERROR_INVALID_NUMBER;
+              return numbers_count + 1;
             }
 
             number = 0;
@@ -751,7 +763,30 @@ hashids_decode(hashids_t *hashids, char *str, unsigned long long *numbers,
     /* store last number */
     *numbers = number;
 
-    return numbers_count + 1;
+    /* Encode output to make sure it's the same as input */
+    numbers_count++;
+    size_t len = str - str_start;
+    str_cpy = hashids_alloc_f(len);
+    if (str_cpy == NULL) {
+      hashids_free_f(str_cpy);
+      _hashids_clear_numbers(numbers_start, numbers_count);
+      return 0;
+    }
+
+    size_t n_encode = hashids_encode(hashids, str_cpy, numbers_count, numbers);
+    if (n_encode == 0) {
+      hashids_free_f(str_cpy);
+      _hashids_clear_numbers(numbers_start, numbers_count);
+      return 0;
+    }
+
+    if (strncmp(str_start, str_cpy, len) != 0) {
+      hashids_free_f(str_cpy);
+      _hashids_clear_numbers(numbers_start, numbers_count);
+      return 0;
+    }
+
+    return numbers_count;
 }
 
 /* unsafe decode */
