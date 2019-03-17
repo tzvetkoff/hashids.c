@@ -100,8 +100,11 @@ hashids_log2_64(unsigned long long x)
 void
 _hashids_clear_numbers(unsigned long long *numbers, size_t numbers_count)
 {
-  hashids_errno = HASHIDS_ERROR_INVALID_HASH;
-  memset(numbers, 0, sizeof(unsigned long long) * numbers_count);
+    hashids_errno = HASHIDS_ERROR_INVALID_HASH;
+
+    for (unsigned int i = 0; i < numbers_count; i++) {
+        *(numbers + i) = 0;
+    }
 }
 
 /* consistent shuffle */
@@ -733,8 +736,8 @@ hashids_decode(hashids_t *hashids, char *str, unsigned long long *numbers,
 
             /* check limit */
             if (++numbers_count >= numbers_max) {
-              hashids_errno = HASHIDS_ERROR_INVALID_NUMBER;
-              return numbers_count + 1;
+                hashids_errno = HASHIDS_ERROR_INVALID_NUMBER;
+                return numbers_count + 1;
             }
 
             number = 0;
@@ -768,22 +771,21 @@ hashids_decode(hashids_t *hashids, char *str, unsigned long long *numbers,
     size_t len = str - str_start;
     str_cpy = hashids_alloc_f(len);
     if (str_cpy == NULL) {
-      hashids_free_f(str_cpy);
-      _hashids_clear_numbers(numbers_start, numbers_count);
-      return 0;
+        hashids_free_f(str_cpy);
+        _hashids_clear_numbers(numbers_start, numbers_count);
+        return 0;
     }
-
-    size_t n_encode = hashids_encode(hashids, str_cpy, numbers_count, numbers);
+    size_t n_encode = hashids_encode(hashids, str_cpy, numbers_count, numbers_start);
     if (n_encode == 0) {
-      hashids_free_f(str_cpy);
-      _hashids_clear_numbers(numbers_start, numbers_count);
-      return 0;
+        hashids_free_f(str_cpy);
+        _hashids_clear_numbers(numbers_start, numbers_count);
+        return 0;
     }
 
     if (strncmp(str_start, str_cpy, len) != 0) {
-      hashids_free_f(str_cpy);
-      _hashids_clear_numbers(numbers_start, numbers_count);
-      return 0;
+        hashids_free_f(str_cpy);
+        _hashids_clear_numbers(numbers_start, numbers_count);
+        return 0;
     }
 
     return numbers_count;
