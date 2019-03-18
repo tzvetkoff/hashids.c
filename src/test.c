@@ -363,6 +363,28 @@ main(int argc, char **argv)
             goto test_end;  /* nop? */
         }
 
+        /* decode and verify salt */
+        result = hashids_decode_verify_salt(hashids, buffer, numbers, 16);
+
+        /* decoding error */
+        if (result != testcase.numbers_count) {
+            fail = 1;
+            failures[k++] = f("%s:%d: hashids_decode_verify_salt() "
+                "returned %u, expected %u",
+                __FILE__, testcase.line,
+                result, testcase.numbers_count);
+            goto test_end;
+        }
+
+        /* compare decoded numbers */
+        if (memcmp(numbers, testcase.numbers,
+                result * sizeof(unsigned long long))) {
+            fail = 1;
+            failures[k++] = f("%s:%d: hashids_decode_verify_salt() decoding error",
+                __FILE__, testcase.line);
+            goto test_end;  /* nop? */
+        }
+
 test_end:
         fputc(fail ? 'F' : '.', stdout);
 

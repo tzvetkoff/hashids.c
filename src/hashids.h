@@ -111,6 +111,10 @@ hashids_decode(hashids_t *hashids, char *str, unsigned long long *numbers,
     size_t numbers_max);
 
 size_t
+hashids_decode_verify_salt(hashids_t *hashids, char *str, unsigned long long *numbers,
+    size_t numbers_max);
+
+size_t
 hashids_decode_unsafe(hashids_t *hashids, char *str, unsigned long long *numbers);
 
 size_t

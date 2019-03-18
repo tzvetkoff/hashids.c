@@ -675,12 +675,9 @@ hashids_decode(hashids_t *hashids, char *str, unsigned long long *numbers,
     size_t numbers_max)
 {
     size_t numbers_count;
-    unsigned long long number, *numbers_start;
-    char lottery, ch, *p, *c, *str_cpy, *str_start;
+    unsigned long long number;
+    char lottery, ch, *p, *c;
     int p_max;
-
-    str_start = str;
-    numbers_start = numbers;
 
     if (!numbers || !numbers_max) {
         return hashids_numbers_count(hashids, str);
@@ -767,9 +764,21 @@ hashids_decode(hashids_t *hashids, char *str, unsigned long long *numbers,
     /* store last number */
     *numbers = number;
 
-    /* Encode output to make sure it's the same as input */
-    numbers_count++;
+    return numbers_count + 1;
+}
 
+/* decode and verify salt */
+size_t
+hashids_decode_verify_salt(hashids_t *hashids, char *str, unsigned long long *numbers,
+    size_t numbers_max)
+{
+    unsigned long long *numbers_start;
+    char *str_cpy, *str_start;
+
+    str_start = str;
+    numbers_start = numbers;
+
+    size_t numbers_count = hashids_decode(hashids, str, numbers, numbers_max);
     size_t len = hashids_estimate_encoded_size(hashids, numbers_count, numbers_start);
     str_cpy = hashids_alloc_f(len);
     if (str_cpy == NULL) {
@@ -792,6 +801,7 @@ hashids_decode(hashids_t *hashids, char *str, unsigned long long *numbers,
 
     return numbers_count;
 }
+
 
 /* unsafe decode */
 size_t
