@@ -102,7 +102,8 @@ _hashids_clear_numbers(unsigned long long *numbers, size_t numbers_count)
 {
     hashids_errno = HASHIDS_ERROR_INVALID_HASH;
 
-    for (unsigned int i = 0; i < numbers_count; i++) {
+    unsigned int i;
+    for (i = 0; i < numbers_count; i++) {
         *(numbers + i) = 0;
     }
 }
