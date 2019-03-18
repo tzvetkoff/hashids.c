@@ -768,13 +768,14 @@ hashids_decode(hashids_t *hashids, char *str, unsigned long long *numbers,
 
     /* Encode output to make sure it's the same as input */
     numbers_count++;
-    size_t len = str - str_start;
+
+    size_t len = hashids_estimate_encoded_size(hashids, numbers_count, numbers_start);
     str_cpy = hashids_alloc_f(len);
     if (str_cpy == NULL) {
-        hashids_free_f(str_cpy);
         _hashids_clear_numbers(numbers_start, numbers_count);
         return 0;
     }
+
     size_t n_encode = hashids_encode(hashids, str_cpy, numbers_count, numbers_start);
     if (n_encode == 0) {
         hashids_free_f(str_cpy);
