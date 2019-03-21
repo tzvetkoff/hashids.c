@@ -734,8 +734,7 @@ hashids_decode(hashids_t *hashids, char *str, unsigned long long *numbers,
 
             /* check limit */
             if (++numbers_count >= numbers_max) {
-                hashids_errno = HASHIDS_ERROR_INVALID_NUMBER;
-                return numbers_count + 1;
+                return numbers_count;
             }
 
             number = 0;
