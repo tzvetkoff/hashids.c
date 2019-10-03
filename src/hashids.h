@@ -104,14 +104,19 @@ hashids_encode_one(hashids_t *hashids, char *buffer,
     unsigned long long number);
 
 size_t
-hashids_numbers_count(hashids_t *hashids, char *str);
+hashids_numbers_count(hashids_t *hashids, const char *str);
 
 size_t
-hashids_decode(hashids_t *hashids, char *str, unsigned long long *numbers,
-    size_t numbers_max);
+hashids_decode(hashids_t *hashids, const char *str,
+    unsigned long long *numbers, size_t numbers_max);
 
 size_t
-hashids_decode_unsafe(hashids_t *hashids, char *str, unsigned long long *numbers);
+hashids_decode_unsafe(hashids_t *hashids, const char *str,
+    unsigned long long *numbers);
+
+size_t
+hashids_decode_safe(hashids_t *hashids, const char *str,
+    unsigned long long *numbers, size_t numbers_max);
 
 size_t
 hashids_encode_hex(hashids_t *hashids, char *buffer, const char *hex_str);
