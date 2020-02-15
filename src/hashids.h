@@ -4,10 +4,10 @@
 #include <stdlib.h>
 
 /* version constants */
-#define HASHIDS_VERSION "1.2.0"
+#define HASHIDS_VERSION "1.2.1"
 #define HASHIDS_VERSION_MAJOR 1
 #define HASHIDS_VERSION_MINOR 2
-#define HASHIDS_VERSION_PATCH 0
+#define HASHIDS_VERSION_PATCH 1
 
 /* minimal alphabet length */
 #define HASHIDS_MIN_ALPHABET_LENGTH 16u

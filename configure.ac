@@ -1,14 +1,14 @@
 # Define the package version numbers, bug reporting link, project homepage.
-m4_define([HASHIDS_VERSION_MAJOR_], [1])
-m4_define([HASHIDS_VERSION_MINOR_], [2])
-m4_define([HASHIDS_VERSION_PATCH_], [0])
-m4_define([HASHIDS_VERSION_STRING_], [HASHIDS_VERSION_MAJOR_.HASHIDS_VERSION_MINOR_.HASHIDS_VERSION_PATCH_])
-m4_define([HASHIDS_BUGREPORT_URL_], [https://github.com/tzvetkoff/hashids.c/issues])
-m4_define([HASHIDS_PROJECT_URL_], [https://github.com/tzvetkoff/hashids.c])
+m4_define([HASHIDS_VERSION_MAJOR], [1])
+m4_define([HASHIDS_VERSION_MINOR], [2])
+m4_define([HASHIDS_VERSION_PATCH], [1])
+m4_define([HASHIDS_VERSION_STRING], [HASHIDS_VERSION_MAJOR.HASHIDS_VERSION_MINOR.HASHIDS_VERSION_PATCH])
+m4_define([HASHIDS_BUGREPORT_URL], [https://github.com/tzvetkoff/hashids.c/issues])
+m4_define([HASHIDS_PROJECT_URL], [https://github.com/tzvetkoff/hashids.c])
 
 # Initialize autoconf & automake.
 AC_PREREQ(2.59)
-AC_INIT([hashids], [HASHIDS_VERSION_STRING_], [HASHIDS_BUGREPORT_URL_], [hashids], [HASHIDS_PROJECT_URL_])
+AC_INIT([hashids], [HASHIDS_VERSION_STRING], [HASHIDS_BUGREPORT_URL], [hashids], [HASHIDS_PROJECT_URL])
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])

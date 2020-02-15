@@ -5,6 +5,7 @@ include_HEADERS = hashids.h
 lib_LTLIBRARIES = libhashids.la
 libhashids_la_SOURCES = hashids.c
 libhashids_la_LIBADD = $(LIBM)
+libhashids_la_LDFLAGS = -no-undefined -version-number 1:2:1
 
 # Binaries to build.
 bin_PROGRAMS = hashids
