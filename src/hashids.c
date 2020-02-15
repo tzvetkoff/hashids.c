@@ -228,7 +228,7 @@ hashids_init3(const char *salt, size_t min_hash_length, const char *alphabet)
     hashids_errno = HASHIDS_ERROR_OK;
 
     /* allocate the structure */
-    result = _hashids_alloc(sizeof(hashids_t));
+    result = (hashids_t *)_hashids_alloc(sizeof(hashids_t));
     if (HASHIDS_UNLIKELY(!result)) {
         hashids_errno = HASHIDS_ERROR_ALLOC;
         return NULL;
@@ -236,7 +236,7 @@ hashids_init3(const char *salt, size_t min_hash_length, const char *alphabet)
 
     /* allocate enough space for the alphabet */
     len = strlen(alphabet) + 1;
-    result->alphabet = _hashids_alloc(len);
+    result->alphabet = (char *)_hashids_alloc(len);
 
     /* extract only the unique characters */
     result->alphabet[0] = '\0';
@@ -265,7 +265,7 @@ hashids_init3(const char *salt, size_t min_hash_length, const char *alphabet)
 
     /* copy salt */
     result->salt_length = salt ? strlen(salt) : 0;
-    result->salt = _hashids_alloc(result->salt_length + 1);
+    result->salt = (char *)_hashids_alloc(result->salt_length + 1);
     if (HASHIDS_UNLIKELY(!result->salt)) {
         hashids_free(result);
         hashids_errno = HASHIDS_ERROR_ALLOC;
@@ -281,7 +281,7 @@ hashids_init3(const char *salt, size_t min_hash_length, const char *alphabet)
         j = len + 1;
     }
 
-    result->separators = _hashids_alloc(j);
+    result->separators = (char *)_hashids_alloc(j);
     if (HASHIDS_UNLIKELY(!result->separators)) {
         hashids_free(result);
         hashids_errno = HASHIDS_ERROR_ALLOC;
@@ -348,7 +348,7 @@ hashids_init3(const char *salt, size_t min_hash_length, const char *alphabet)
     /* allocate guards */
     result->guards_count = hashids_div_ceil_size_t(result->alphabet_length,
         HASHIDS_GUARD_DIVISOR);
-    result->guards = _hashids_alloc(result->guards_count + 1);
+    result->guards = (char *)_hashids_alloc(result->guards_count + 1);
     if (HASHIDS_UNLIKELY(!result->guards)) {
         hashids_free(result);
         hashids_errno = HASHIDS_ERROR_ALLOC;
@@ -372,8 +372,10 @@ hashids_init3(const char *salt, size_t min_hash_length, const char *alphabet)
     }
 
     /* allocate enough space for the alphabet copies */
-    result->alphabet_copy_1 = _hashids_alloc(result->alphabet_length + 1);
-    result->alphabet_copy_2 = _hashids_alloc(result->alphabet_length + 1);
+    result->alphabet_copy_1 = (char *)_hashids_alloc(result->alphabet_length +
+        1);
+    result->alphabet_copy_2 = (char *)_hashids_alloc(result->alphabet_length +
+        1);
     if (HASHIDS_UNLIKELY(!result->alphabet || !result->alphabet_copy_1
         || !result->alphabet_copy_2)) {
         hashids_free(result);
@@ -443,7 +445,8 @@ hashids_estimate_encoded_size_v(hashids_t *hashids,
     unsigned long long *numbers;
     va_list ap;
 
-    numbers = _hashids_alloc(numbers_count * sizeof(unsigned long long));
+    numbers = (unsigned long long *)_hashids_alloc(numbers_count *
+        sizeof(unsigned long long));
 
     if (HASHIDS_UNLIKELY(!numbers)) {
         hashids_errno = HASHIDS_ERROR_ALLOC;
@@ -627,7 +630,8 @@ hashids_encode_v(hashids_t *hashids, char *buffer,
     unsigned long long *numbers;
     va_list ap;
 
-    numbers = _hashids_alloc(numbers_count * sizeof(unsigned long long));
+    numbers = (unsigned long long *)_hashids_alloc(numbers_count *
+        sizeof(unsigned long long));
 
     if (HASHIDS_UNLIKELY(!numbers)) {
         hashids_errno = HASHIDS_ERROR_ALLOC;
@@ -814,12 +818,13 @@ hashids_decode_safe(hashids_t *hashids, const char *str,
 
     numbers_count = hashids_decode(hashids, str, numbers, numbers_max);
     if (HASHIDS_UNLIKELY(!numbers_count)) {
+        hashids_errno = HASHIDS_ERROR_INVALID_HASH;
         return 0;
     }
 
     len = hashids_estimate_encoded_size(hashids, numbers_count, numbers);
 
-    p = _hashids_alloc(len);
+    p = (char *)_hashids_alloc(len);
     if (HASHIDS_UNLIKELY(!p)) {
         hashids_errno = HASHIDS_ERROR_ALLOC;
         return 0;
@@ -852,7 +857,7 @@ hashids_encode_hex(hashids_t *hashids, char *buffer,
     unsigned long long number;
 
     len = strlen(hex_str);
-    temp = _hashids_alloc(len + 2);
+    temp = (char *)_hashids_alloc(len + 2);
 
     if (!temp) {
         hashids_errno = HASHIDS_ERROR_ALLOC;

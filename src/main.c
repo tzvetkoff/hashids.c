@@ -73,7 +73,8 @@ main(int argc, char **argv)
     };
 
     /* parse command line options */
-    while ((ch = getopt_long(argc, argv, "+eds:a:l:xhv", longopts, NULL)) != -1) {
+    while ((ch = getopt_long(argc, argv, "+eds:a:l:xhv", longopts,
+        NULL)) != -1) {
         switch (ch) {
             case 'e':
                 command = COMMAND_ENCODE;
@@ -120,16 +121,17 @@ main(int argc, char **argv)
     if (!hashids) {
         switch (hashids_errno) {
             case HASHIDS_ERROR_ALLOC:
-                printf("Hashids: Allocation failed\n");
+                fputs("Hashids: Allocation failed\n", stderr);
                 break;
             case HASHIDS_ERROR_ALPHABET_LENGTH:
-                printf("Hashids: Alphabet is too short\n");
+                fputs("Hashids: Alphabet is too short\n", stderr);
                 break;
             case HASHIDS_ERROR_ALPHABET_SPACE:
-                printf("Hashids: Alphabet contains whitespace characters\n");
+                fputs("Hashids: Alphabet contains whitespace characters\n",
+                    stderr);
                 break;
             default:
-                printf("Hashids: Unknown error\n");
+                fputs("Hashids: Unknown error\n", stderr);
                 break;
         }
 
@@ -141,11 +143,11 @@ main(int argc, char **argv)
         /* hex mode */
         if (hex) {
             number = (unsigned long long)-1;
-            buffer = calloc(hashids_estimate_encoded_size(hashids, 1, &number),
-                1);
+            buffer = (char *)calloc(
+                hashids_estimate_encoded_size(hashids, 1, &number), 1);
 
             if (!buffer) {
-                printf("Cannot allocate memory for buffer\n");
+                fputs("Cannot allocate memory for buffer\n", stderr);
                 hashids_free(hashids);
                 return EXIT_FAILURE;
             }
@@ -162,11 +164,12 @@ main(int argc, char **argv)
 
         /* collect numbers */
         numbers_count = argc - optind;
-        numbers = calloc(numbers_count, sizeof(unsigned long long));
+        numbers = (unsigned long long *)calloc(numbers_count,
+            sizeof(unsigned long long));
         numbers_ptr = numbers;
 
         if (!numbers) {
-            printf("Cannot allocate memory for numbers\n");
+            fprintf(stderr, "Cannot allocate memory for numbers\n");
             hashids_free(hashids);
             return EXIT_FAILURE;
         }
@@ -174,7 +177,7 @@ main(int argc, char **argv)
         for (i = optind; i < argc; ++i) {
             *numbers_ptr++ = parse_number(argv[i], &p);
             if (p == argv[i]) {
-                printf("Invalid number: %s\n", argv[i]);
+                fprintf(stderr, "Invalid number: %s\n", argv[i]);
                 free(numbers);
                 hashids_free(hashids);
                 return EXIT_FAILURE;
@@ -182,11 +185,11 @@ main(int argc, char **argv)
         }
 
         /* allocate output buffer */
-        buffer = calloc(hashids_estimate_encoded_size(hashids, numbers_count,
-            numbers), 1);
+        buffer = (char *)calloc(hashids_estimate_encoded_size(hashids,
+            numbers_count, numbers), 1);
 
         if (!buffer) {
-            printf("Cannot allocate memory for buffer\n");
+            fprintf(stderr, "Cannot allocate memory for buffer\n");
             free(numbers);
             hashids_free(hashids);
             return EXIT_FAILURE;
@@ -214,16 +217,15 @@ main(int argc, char **argv)
     }
 
     for (i = optind; i < argc; ++i) {
-
         numbers_count = hashids_numbers_count(hashids, argv[i]);
 
         if (!numbers_count) {
             switch (hashids_errno) {
                 case HASHIDS_ERROR_INVALID_HASH:
-                    printf("Hashids: Invalid hash: %s\n", argv[i]);
+                    fprintf(stderr, "Hashids: Invalid hash: %s\n", argv[i]);
                     break;
                 default:
-                    printf("Hashids: Unknown error\n");
+                    fputs("Hashids: Unknown error\n", stderr);
                     break;
             }
 
@@ -231,15 +233,21 @@ main(int argc, char **argv)
             return EXIT_FAILURE;
         }
 
-        numbers = calloc(numbers_count, sizeof(unsigned long long));
+        numbers = (unsigned long long *)calloc(numbers_count,
+            sizeof(unsigned long long));
 
         if (!numbers) {
-            printf("Cannot allocate memory for numbers\n");
+            fprintf(stderr, "Cannot allocate memory for numbers\n");
             hashids_free(hashids);
             return EXIT_FAILURE;
         }
 
-        hashids_decode(hashids, argv[i], numbers, numbers_count);
+        if (hashids_decode_safe(hashids, argv[i], numbers, numbers_count) !=
+            numbers_count) {
+            fprintf(stderr, "Could not decode numbers properly\n");
+            hashids_free(hashids);
+            return EXIT_FAILURE;
+        }
 
         for (j = 0; j < numbers_count; ++j) {
             printf("%llu", numbers[j]);

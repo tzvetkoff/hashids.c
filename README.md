@@ -189,7 +189,7 @@ bytes_encoded = hashids_encode_one(hashids, hash, 12345);
 
 ``` c
 size_t
-hashids_numbers_count(hashids_t *hashids, char *str);
+hashids_numbers_count(hashids_t *hashids, const char *str);
 ```
 
 Returns how many `ULONGLONG`s are encoded in a string.
@@ -207,7 +207,7 @@ size_t numbers_count = hashids_numbers_count(hashids, "ADf9h9i0sQ");
 
 ``` c
 size_t
-hashids_decode(hashids_t *hashids, char *str, unsigned long long *numbers, size_t numbers_max);
+hashids_decode(hashids_t *hashids, const char *str, unsigned long long *numbers, size_t numbers_max);
 ```
 
 The common decoding decoder.
@@ -227,7 +227,7 @@ result = hashids_decode(hashids, "QkoW1vt955nxCVVjZDt5VD2PTgBP72", numbers, 5);
 
 ``` c
 size_t
-hashids_decode_unsafe(hashids_t *hashids, char *str, unsigned long long *numbers);
+hashids_decode_unsafe(hashids_t *hashids, const char *str, unsigned long long *numbers);
 ```
 
 The unsafe decoding decoder. Kept mostly for the ease of use.
@@ -239,6 +239,21 @@ Example:
 unsigned long long numbers[5];
 result = hashids_decode_unsafe(hashids, "QkoW1vt955nxCVVjZDt5VD2PTgBP72", numbers);
 /* numbers = {21979508, 35563591, 57543099, 93106690, 150649789}, result => 5 */
+```
+
+#### hashids_decode_safe
+
+A "safe" decoding decoder. Checks if the decoded numbers are encoded into the exact same string.
+
+Example:
+
+``` c
+hashids_t hashids;
+hashids = hashids_init3(HASHIDS_DEFAULT_SALT, 64, HASHIDS_DEFAULT_ALPHABET);
+unsigned long long numbers[5];
+result = hashids_decode_safe(hashids, "ky16BrZ5DYW4q3oOaQkoW1vt955nxCVVjZDt5VD2PTgBP72dKAMmwRnQXlEgGJ2p", numbers, 5);
+/* result => 0, hashids_errno = HASHIDS_ERROR_INVALID_HASH (the correct last letter is "P") */
+XXXXXX
 ```
 
 #### hashids_encode_hex
