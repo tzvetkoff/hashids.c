@@ -394,7 +394,7 @@ hashids_init4(const char *salt, size_t min_hash_length, const char *alphabet, co
 hashids_t *
 hashids_init3(const char *salt, size_t min_hash_length, const char *alphabet)
 {
-    return hashids_init4(salt, min_hash_length, HASHIDS_DEFAULT_ALPHABET, HASHIDS_DEFAULT_SEPARATORS);
+    return hashids_init4(salt, min_hash_length, alphabet, HASHIDS_DEFAULT_SEPARATORS);
 }
 
 /* init with salt and minimum hash length */
