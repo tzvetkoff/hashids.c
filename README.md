@@ -57,6 +57,22 @@ hashids_free(hashids_t *hashids);
 The 'destructor'. This function disposes what you can allocate with the following 3 functions.
 You'll definetely need to call this function when you're done (un)hashing.
 
+#### hashids_init4
+
+``` c
+hashids_t *
+hashids_init4(const char *salt, size_t min_hash_length, const char *alphabet, const char *separators);
+```
+
+The most common initializer.
+
+Example:
+
+``` c
+hashids_t *hashids;
+hashids = hashids_init4("this is my salt", 0, HASHIDS_DEFAULT_ALPHABET, HASHIDS_DEFAULT_SEPARATORS);
+```
+
 #### hashids_init3
 
 ``` c
@@ -64,7 +80,8 @@ hashids_t *
 hashids_init3(const char *salt, size_t min_hash_length, const char *alphabet);
 ```
 
-The most common initializer.
+The same as `hashids_init3` but without the `separators` parameter.
+Will use `HASHIDS_DEFAULT_SEPARATORS` as alphabet.
 
 Example:
 

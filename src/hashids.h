@@ -76,6 +76,10 @@ void
 hashids_free(hashids_t *hashids);
 
 hashids_t *
+hashids_init4(const char *salt, size_t min_hash_length,
+    const char *alphabet, const char *separators);
+
+hashids_t *
 hashids_init3(const char *salt, size_t min_hash_length,
     const char *alphabet);
 
