@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <math.h>
+#include <unistd.h>
 
 #include "hashids.h"
 
