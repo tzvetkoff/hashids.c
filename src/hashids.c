@@ -110,8 +110,7 @@ hashids_log2_64(unsigned long long x)
 void
 hashids_shuffle(char *str, size_t str_length, char *salt, size_t salt_length)
 {
-    ssize_t i;
-    size_t j, v, p;
+    size_t i, j, v, p;
     char temp;
 
     /* meh, meh */
