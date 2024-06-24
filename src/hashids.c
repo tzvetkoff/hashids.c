@@ -218,7 +218,7 @@ hashids_free(hashids_t *hashids)
 
 /* common init */
 hashids_t *
-hashids_init3(const char *salt, size_t min_hash_length, const char *alphabet)
+hashids_init4(const char *salt, size_t min_hash_length, const char *alphabet, const char *separators)
 {
     hashids_t *result;
     size_t i, j, len;
@@ -273,7 +273,7 @@ hashids_init3(const char *salt, size_t min_hash_length, const char *alphabet)
     strncpy(result->salt, salt, result->salt_length);
 
     /* allocate enough space for separators */
-    len = strlen(HASHIDS_DEFAULT_SEPARATORS);
+    len = strlen(separators);
     j = (size_t)
         (ceil((float)result->alphabet_length / HASHIDS_SEPARATOR_DIVISOR) + 1);
     if (j < len + 1) {
@@ -288,8 +288,8 @@ hashids_init3(const char *salt, size_t min_hash_length, const char *alphabet)
     }
 
     /* take default separators out of the alphabet */
-    for (i = 0, j = 0; i < strlen(HASHIDS_DEFAULT_SEPARATORS); ++i) {
-        ch = HASHIDS_DEFAULT_SEPARATORS[i];
+    for (i = 0, j = 0; i < strlen(separators); ++i) {
+        ch = separators[i];
 
         /* check if separator is actually in the used alphabet */
         if ((p = strchr(result->alphabet, ch))) {
@@ -387,6 +387,13 @@ hashids_init3(const char *salt, size_t min_hash_length, const char *alphabet)
 
     /* return result happily */
     return result;
+}
+
+/* init with salt, minimum hash length and custom alphabet */
+hashids_t *
+hashids_init3(const char *salt, size_t min_hash_length, const char *alphabet)
+{
+    return hashids_init4(salt, min_hash_length, alphabet, HASHIDS_DEFAULT_SEPARATORS);
 }
 
 /* init with salt and minimum hash length */
